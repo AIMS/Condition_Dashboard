@@ -43,9 +43,9 @@ sum.reef.tx<-function(i.df, y){
     unique %>%
     mutate(Ind.desc=case_match(Indicator, "Coral.cover"~"hard coral cover",
                                "Macroalgae" ~"proportion of macroalgae in the algal cover",
-                               "Juvenile"~"density of juvenile hard corals",
-                               "Performance"~ "recovery rate of hard coral cover",
-                               "Composition"~"coral community composition"))
+                               "Juvenile.density"~"density of Juvenile.density hard corals",
+                               "Recovery.performance"~ "recovery rate of hard coral cover",
+                               "Community.composition"~"coral community composition"))
   
   
   #************************************
@@ -142,44 +142,44 @@ sum.reef.tx<-function(i.df, y){
     )
   
   #*********************************#
-  # Performance Indicator  ##########
+  # Recovery.performance Indicator  ##########
   #*********************************#
   
   data.p<-i.df %>% 
-    filter(Indicator=="Performance" &  Reference=="Baseline" & Year==y) %>% 
+    filter(Indicator=="Recovery.performance" &  Reference=="Baseline" & Year==y) %>% 
     droplevels() 
   
   data.p.c<-i.df %>% 
-    filter(Indicator=="Performance" & Reference=="Critical" & Year==y) %>% 
+    filter(Indicator=="Recovery.performance" & Reference=="Critical" & Year==y) %>% 
     droplevels()
   
   Low.pe<-data.p$Upper<0.5
   Low.pe.c<-data.p.c$Upper<0.5
   
   Indi.desc.pe<-as.character(Indi %>% 
-                               filter(Indicator=="Performance") %>% 
+                               filter(Indicator=="Recovery.performance") %>% 
                                pull(Ind.desc))
   ##  Separate sentences for Regional and reef level summary to allow combination as appropriate
   
-  # Reef Performance baseline low, HC ok
+  # Reef Recovery.performance baseline low, HC ok
   Autotext7="In contrast to scores for %s, the %s is lower than expected for reefs in this bioregion."
   
-  # Reef Performance below expectations, HC low 
+  # Reef Recovery.performance below expectations, HC low 
   Autotext8="Compounding low %s scores, the %s is also lower than expected for reefs in this bioregion."
   
-  # Reef Performance at expectations, HC at or above 
+  # Reef Recovery.performance at expectations, HC at or above 
   Autotext9="Supporting scores for %s, the %s was consistent with that expected for reefs in this bioregion."
   
-  # Reef Performance at expectations, HC low
+  # Reef Recovery.performance at expectations, HC low
   Autotext10="Although %s is low, the %s was consistent with that expected for reefs in this bioregion."
   
-  # Reef level Critical Performance low, and Baseline performance low
+  # Reef level Critical Recovery.performance low, and Baseline Recovery.performance low
   Autotext11="In addition to the slow rate of recovery relative to historical values, the %s has declined relative the reef's recent recovery trajectory."
   
-  # Reef level Critical Performance low and Baseline performance ok  
+  # Reef level Critical Recovery.performance low and Baseline Recovery.performance ok  
   Autotext12="Despite the rate of recovery remaining similar to historical values for this bioregion, the %s has declined relative the reef's recent recovery trajectory."
   
-  # Reef level Critical Performance ok
+  # Reef level Critical Recovery.performance ok
   Autotext13="The current %s remains similar the reef's recent recovery trajectory."
   
   Autotext13a="The recent recovery trajectory for this reef could not be estimated due to lack of sufficient number of observations"
@@ -187,7 +187,7 @@ sum.reef.tx<-function(i.df, y){
   
   
   # Recovery not estimated or other adjustment made?   
-  Autotext.no.performance.estimate=""     ##########---------Yet to be decided 
+  Autotext.no.Recovery.performance.estimate=""     ##########---------Yet to be decided 
   
   sent.pe=
     ifelse(isTRUE(Low.pe) & isFALSE(Low.hc),
@@ -244,50 +244,50 @@ sum.reef.tx<-function(i.df, y){
 
   #JUv data
   data.j<-i.df%>% 
-    filter(Indicator=="Juvenile" &  Reference=="Baseline" & Year==y) %>% 
+    filter(Indicator=="Juvenile.density" &  Reference=="Baseline" & Year==y) %>% 
     droplevels() 
   
   data.j.c<-i.df %>% 
-    filter(Indicator=="Juvenile" & Reference=="Critical" & Year==y) %>% 
+    filter(Indicator=="Juvenile.density" & Reference=="Critical" & Year==y) %>% 
     droplevels()
   
   Low.j<-data.j$Upper<0.5
   Low.j.c<-data.j.c$Upper<0.5
   
   Indi.desc.j<-as.character(Indi %>% 
-                              filter(Indicator=="Juvenile") %>% 
+                              filter(Indicator=="Juvenile.density") %>% 
                               pull(Ind.desc))
   
-  # Both MA and Juv Low, Performance and HC ok -Watch/Warning1
-  Autotext14="Despite the observed cover and performance of hard coral communities, low scores of %s and %s are of concern." 
+  # Both MA and Juv Low, Recovery.performance and HC ok -Watch/Warning1
+  Autotext14="Despite the observed cover and Recovery.performance of hard coral communities, low scores of %s and %s are of concern." 
   
-  # Both MA and Juv Low, Performance low, HC ok -Warning1/Warning2
-  # Both MA and Juv Low, Performance ok, HC low -Warning1/Warning2
-  # Both MA and Juv Low, Performance and HC low -Critical
+  # Both MA and Juv Low, Recovery.performance low, HC ok -Warning1/Warning2
+  # Both MA and Juv Low, Recovery.performance ok, HC low -Warning1/Warning2
+  # Both MA and Juv Low, Recovery.performance and HC low -Critical
   Autotext15="Further limiting the assessemnt of coral communities are that %s is below, and %s above historical reference levels." 
   
-  # Both MA and Juv ok, Performance and HC low -Warning2/Critical
-  Autotext16="In contrast to the cover and performance of hard coral communities, that %s is below and %s are above historical reference levels is a positive sign."
+  # Both MA and Juv ok, Recovery.performance and HC low -Warning2/Critical
+  Autotext16="In contrast to the cover and Recovery.performance of hard coral communities, that %s is below and %s are above historical reference levels is a positive sign."
   
-  # Both MA and Juv ok, Performance low, HC ok -Watch/Warning1
+  # Both MA and Juv ok, Recovery.performance low, HC ok -Watch/Warning1
   Autotext17="Although %s is low, that %s is below and %s are above historical reference levels is a positive sign."
   
-  # Both MA and Juv ok, Performance ok, HC low -Watch/Warning1
+  # Both MA and Juv ok, Recovery.performance ok, HC low -Watch/Warning1
   Autotext18="Although %s is low, neither %s, %s or %s, are in worse condition relative to historical reference levels."
   
-  # Both MA and Juv ok, Performance and HC ok -Good/Watch
-  Autotext19="Scores for %s and %s add support to the ongoning resilience of coral communities demonstrated by the Coral cover and Performance Indicators."
+  # Both MA and Juv ok, Recovery.performance and HC ok -Good/Watch
+  Autotext19="Scores for %s and %s add support to the ongoning resilience of coral communities demonstrated by the Coral cover and Recovery.performance Indicators."
   
-  #One of MA or Juv ok, Performance and HC ok -Watch
+  #One of MA or Juv ok, Recovery.performance and HC ok -Watch
   Autotext20="While %s does not deviate from historical reference levels, this is not the case for %s."
   
-  # One of Ma or Juv ok, Performance low, HC ok -Warning1
-  Autotext21="While %s does not deviate from historical reference levels, this is not the case for %s and adds to the concern raised by the low performance score."
+  # One of Ma or Juv ok, Recovery.performance low, HC ok -Warning1
+  Autotext21="While %s does not deviate from historical reference levels, this is not the case for %s and adds to the concern raised by the low Recovery.performance score."
   
-  # One of Ma or Juv ok, Performance ok, HC low -Warning1
+  # One of Ma or Juv ok, Recovery.performance ok, HC low -Warning1
   Autotext22="While %s does not deviate from historical reference levels, this is not the case for %s and raises some concern for future recovery."
   
-  # One of Ma or Juv ok, Performance and HC low -Critical
+  # One of Ma or Juv ok, Recovery.performance and HC low -Critical
   Autotext23="While %s does not deviate from historical reference levels, this is not the case for %s and this raises further concern for the maintaininece of recovery processes."
   
   
@@ -392,16 +392,16 @@ sum.reef.tx<-function(i.df, y){
   
   
   
-  # Juvenile consequence low, baseline ok
+  # Juvenile.density consequence low, baseline ok
   Autotext24="Despite the score for %s, the density of <i>Acropora</i> juveniles is low and this may limit the future rate of coral cover recovery."
   
-  #Juvenile consequence low, baseline low
+  #Juvenile.density consequence low, baseline low
   Autotext25="Compounding low scores for %s is the low density of <i>Acropora</i> juveniles, a group important for maintaining high rates of coral cover recovery."
   
-  #Juvenile consequence ok, baseline ok
+  #Juvenile.density consequence ok, baseline ok
   Autotext26="In addition to the scores for %s, the density of <i>Acropora</i> juveniles are sufficient to promote coral cover recovery."
   
-  #Juvenile consequence ok, baseline low
+  #Juvenile.density consequence ok, baseline low
   Autotext26="Although the %s is below historical reference levels the density of <i>Acropora</i> juveniles are sufficient to promote coral cover recovery."
   
   # Macroalgae consequence low, baseline low
@@ -452,13 +452,13 @@ sum.reef.tx<-function(i.df, y){
   #************#####
   #comp data
   data.co<-i.df %>% 
-    filter(Indicator=="Composition" &  Reference=="Baseline" & Year==y) %>% 
+    filter(Indicator=="Community.composition" &  Reference=="Baseline" & Year==y) %>% 
     droplevels() 
   
 
   
   data.co.low<-i.df%>%
-    filter(Indicator=="Composition" & Reference=="Baseline") %>% 
+    filter(Indicator=="Community.composition" & Reference=="Baseline") %>% 
     droplevels() %>%
     arrange(Year) %>%
     mutate(Low=ifelse(Upper<0.5,1,0),
@@ -471,14 +471,14 @@ sum.reef.tx<-function(i.df, y){
   low.years.co<-nrow(data.co.low %>% filter(runID.l==max(runID.l) & Low=='1'))
   
   data.co.c<-i.df %>% 
-    filter(Indicator=="Composition" & Reference=="Critical" & Year==y) %>% 
+    filter(Indicator=="Community.composition" & Reference=="Critical" & Year==y) %>% 
     droplevels()
   
   Low.co<-data.co$Upper<0.5
   Low.co.c<-data.co.c$Upper<0.5
   
   Indi.desc.co<-as.character(Indi %>% 
-                               filter(Indicator=="Composition") %>% 
+                               filter(Indicator=="Community.composition") %>% 
                                pull(Ind.desc))
   
 
@@ -545,9 +545,9 @@ sum.reef.tx<-function(i.df, y){
   #********************************************************************************************
   CC='Coral.cover' %in% (i.df$Indicator)
   M="Macroalgae" %in% (i.df$Indicator)
-  C="Composition" %in% (i.df$Indicator)
+  C="Community.composition" %in% (i.df$Indicator)
   J="Juvenil" %in% (i.df$Indicator)
-  P="Performance" %in% (i.df$Indicator)
+  P="Recovery.performance" %in% (i.df$Indicator)
   
   sample.autotext="This classification reflects the assesement of indicators relative to their historical baselines"  
   sample.autotext.n1="A clasification could not be made for this reef as estimates for all five indicators were not available"

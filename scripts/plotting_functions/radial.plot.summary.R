@@ -13,7 +13,7 @@ library(geomtextpath)
 #   )
 # }
 
-scale_fill_class <- function(...){
+scale_fill_class.c <- function(...){
   ggplot2:::manual_scale(
     'fill', 
     values = setNames(c("#EF3A14" , "#EFC214", "#56B703"), 
@@ -61,9 +61,9 @@ radial.plot.summary<-function(dat,ref){
       mutate(Indicator=recode(Indicator, 
              Coral.cover="Coral cover",
              Macroalgae="Macroalgae cover",
-             Performance="Recovery performance",
-             Juvenile="Juvenile abundance",
-             Composition="Community composition"))%>%
+             Recovery.performance="Recovery performance",
+             Juvenile.density="Juvenile abundance",
+             Community.composition="Community composition"))%>%
       # mutate(Indicator=str_replace(Indicator, "[.]", " "))%>%
       ggplot()+
       geom_col(
@@ -164,7 +164,7 @@ radial.plot.summary<-function(dat,ref){
         breaks = c(0, 0.25, 0.5, 0.75, 1)
       ) + 
       # New fill and legend title for number of tracks per region
-      scale_fill_class()+
+      scale_fill_class.c()+
       #   "Condition",
       #   values = brewer.pal(name="RdYlGn", n=3)
       # ) +

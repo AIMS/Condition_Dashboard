@@ -16,18 +16,18 @@ ui <- bootstrapPage(
                           leafletOutput("region.map", width="100%", height="100%"),
                           
                           absolutePanel(id = "controls", class = "panel panel-default",
-                                        top = 75, left = 55, width = 450, fixed=TRUE,
+                                        top = 75, left = 55, width = 400, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
                                         
                                         # span(tags$i(h6("Estimated condition of coral reef habitats based monitored reefs in the Great Barrier Reef.")), style="color:#045a8d"),
                                         fluidRow(
-                                          column(width=8,offset = 1,fluidRow(
+                                          column(width=6,offset = 1,fluidRow(
                                             h6(htmlOutput("clean_region_reactive"), align = "left"),
                                             h6(htmlOutput("clean_date_reactive"), align = "left")
                                           )),
-                                          column(width=2,h6(htmlOutput("reactive_condition"), align = "right",.noWS = "outside"))
+                                          column(width=2,h6(htmlOutput("reactive_condition"), align = "left",.noWS = "outside"))
                                         ),
-                                        conditionalPanel('input.region_select=="Reef"',
+                                        conditionalPanel('input.region_select=="reef"',
                                                          prettyToggle(
                                                            inputId = "reference",
                                                            label_on = "Baseline Reference",
@@ -37,33 +37,49 @@ ui <- bootstrapPage(
                                                          )
                                         ),
                                         plotOutput("region.radial.plot", height="350px", width="100%"),
-                                        span(tags$i(h6("Error bars represent the 90% credible intervals")), style="color:#045a8d"),
+                                        # span(tags$i(h6("Error bars represent the 90% credible intervals")), style="color:#045a8d"),
                                         sliderInput("report_year", "Select Report year",
-                                                    min=2007, max=2021, value=2021),
+                                                    min=2007, max=2023, value=2022),
                                         # animate=animationOptions(interval = 3000, loop = FALSE)),
                                         
-                                        pickerInput("region_select", "Level:",   
-                                                    choices = c("GBR","GBRMPA_Management", "NRM", "TUMRA", "Reef"),
-                                                    selected = "GBRMPA_Management",
+                                        
+                                        
+                                        
+                                        conditionalPanel('input.region_select!="reef"',
+                                                         awesomeRadio(inputId = "shelf",
+                                                                              label= "Shelf",
+                                                                              choices = c("All","Inshore","Offshore"),
+                                                                              selected = "Inshore",
+                                                                      checkbox = FALSE,
+                                                                              inline = T)
+                                        ),
+                                        awesomeRadio(inputId = "detail",
+                                                     label= "Detail plots",
+                                                     choices = c("Trends","Composition","Proportions"),
+                                                     selected = "Trends",
+                                                     checkbox = FALSE,
+                                                     inline = T),
+                                        pickerInput("region_select", "Region:",   
+                                                    choices = c("GBR","GBRMPA.MA", "ZONE", "NRM", "TUMRA", "reef"),
+                                                    selected = "ZONE",
                                                     multiple = FALSE),
                                         
                                         pickerInput("value_select", "Name:",
-                                                    choices = c("Mackay/Capricorn Management Area",
-                                                                "Townsville/Whitsunday Management Area",
-                                                                "Cairns/Cooktown Management Area",
-                                                                "Far Northern Management Area" ),
+                                                    choices = c("Central",
+                                                                "Southern",
+                                                                "Northern" ),
                                                     # choices = "GBRMPA",
-                                                    selected = "Townsville/Whitsunday Management Area",
+                                                    selected = "Central",
                                                     options = list(`actions-box` = TRUE), 
                                                     # `none-selected-text` = "Townsville/Whitsunday Management Area"),
                                                     multiple = FALSE)
                           ),
-                          absolutePanel(id = "details", class = "panel panel-default",
+                          absolutePanel(id = "detail.plot", class = "panel panel-default",
                                         top = 75, left = 500, width = 400, fixed=TRUE,
                                         draggable = TRUE, height = "auto",
-                                        HTML('<button data-toggle="collapse" data-target="#demo">Temporal Series</button>'),
+                                        HTML('<button data-toggle="collapse" data-target="#demo">Details</button>'),
                                         tags$div(id = 'demo',  class="collapse",
-                                                 plotOutput("region.temporal.plot.summ",height="250px", width="100%")
+                                                 plotOutput("details",height="250px", width="100%")
                                         )),
                           
                           absolutePanel(id = "synopsis", class = "panel panel-default",
@@ -73,7 +89,7 @@ ui <- bootstrapPage(
                                         # tags$div(id = 'synopsis',  class="collapse",
                                         h3("Synopsis", style="color:#7393B3;font-weight: bold;text-align:center"),
                                         h6(htmlOutput("synopsis"), align = "left"),
-                                        span(tags$i(h6(htmlOutput("synopsis.note")), style="color:#71797E;font-size:0.3em;text-align:center")),
+                                        span(tags$i(h6(htmlOutput("synopsis.note")), style="color:#71797E;font-size:0.3em;text-align:center"))
                                         
                           )
                           
@@ -104,8 +120,8 @@ ui <- bootstrapPage(
              #                                        # animate=animationOptions(interval = 3000, loop = FALSE)),
              #                            
              #                            pickerInput("region_select", "Level:",   
-             #                                        choices = c("GBR","GBRMPA_Management", "NRM", "TUMRA", "Reef"),
-             #                                        selected = "GBRMPA_Management",
+             #                                        choices = c("GBR","GBRMPA.MA", "NRM", "TUMRA", "Reef"),
+             #                                        selected = "GBRMPA.MA",
              #                                        multiple = FALSE),
              #                            
              #                            pickerInput("value_select", "Name:",
@@ -122,6 +138,7 @@ ui <- bootstrapPage(
              # )
   )
 )
+
 # 
 # tabPanel("Region plots",
 #          

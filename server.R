@@ -1,10 +1,9 @@
 server <- function(session, input, output) {
   set.seed(122)
-  
   observe({
     cat("Selection:", input$value_select, "\n")
-    
-    if (input$region_select=="Reef"){
+
+    if (input$region_select=="reef"){
       r<-get_reef(input$value_select)
     }else{
       r<-get_reefs(selVal = input$value_select)
@@ -15,10 +14,22 @@ server <- function(session, input, output) {
       i.df=NULL
       dat=NULL
     }else{
+
       i.df<-scores%>%filter(
         Name==input$value_select)
       i.df.r<-scores%>%filter(
         Name %in% r$Name)
+      
+      if (input$region_select=="reef"){
+        r.shelf=i.df%>%select(Shelf)%>%unique()%>%pull(Shelf)
+        updateTextInput(session = session, inputId = "shelf",value = r.shelf)
+      }
+      i.df<-i.df%>%filter(Shelf %in% input$shelf)
+      
+      if(input$shelf=="All"){s=c("Inshore","Offshore")}else{s=input$shelf}
+      i.df.r<-i.df.r%>%filter(Shelf %in% s)
+      
+      
       dat<-i.df%>%filter(
         Year==input$report_year)
       if (dim(dat)[1]>0){
@@ -35,6 +46,7 @@ server <- function(session, input, output) {
         dat.temp<-data.frame()
       }else{
         dat.temp<-i.df%>%
+          filter(Shelf==input$shelf)%>%
           mutate(Classification=case_when(
             Lower > 0.5 ~ "Above",
             Upper < 0.5 ~ "Below",
@@ -47,14 +59,10 @@ server <- function(session, input, output) {
         st_make_valid()%>%
         st_transform(4326)
       
+      
     }
     
     
-    
-    
-    
-    
-    cat("Plotting Map",  "\n")
     
     output$reactive_condition=renderText({
       if (dim(dat)[1]==0){
@@ -104,7 +112,7 @@ server <- function(session, input, output) {
       map.reefs(sf.frame = i.df.r, reef=r, b=this.region, y=input$report_year)
     })
     output$region.radial.plot<-renderPlot({
-      if (input$region_select!="Reef"){
+      if (input$region_select!="reef"){
         ref="Baseline"
         radial.plot.summary(dat = dat,ref = ref)
       }else{
@@ -112,28 +120,26 @@ server <- function(session, input, output) {
         radial.plot.summary(dat = dat,ref = ref)
       }
     })
-    output$region.temporal.plot.summ<-renderPlot({
-      ind.temp.summary(dat.temp)
+    output$details<-renderPlot({
+      if(input$detail=="Trends"){p=ind.temp.summary(dat.temp)}
+      if(input$detail=="Composition"){p=comp_plot(comp, i.df.r, y=input$report_year, s=input$shelf)}
+      if(input$detail=="Proportions"){p=P.Cond(i.df.r, y=input$report_year, s=input$shelf)}
+      p
     })
-    # output$region.donut<-renderPlot({
-    # 
-    #   
-    #       })
-    
-    # }
+
     output$synopsis<-renderText({
-      if(input$region_select=="Reef"){
+      if(input$region_select=="reef"){
         sum.reef.tx(i.df, input$report_year)[[1]]
       }else{
-        sum.tx(i.df, input$report_year)[[1]]
+        sum.tx.r(i.df, input$report_year)[[1]]
       }
       
     })
     output$synopsis.note<-renderText({
-      if(input$region_select=="Reef"){
+      if(input$region_select=="reef"){
         sum.reef.tx(i.df, input$report_year)[[2]]
       }else{
-        sum.tx(i.df, input$report_year)[[2]]
+        sum.tx.r(i.df, input$report_year)[[2]]
       }
     })
     
@@ -153,7 +159,7 @@ server <- function(session, input, output) {
       
     }
     
-    if (input$region_select =="GBRMPA_Management") {
+    if (input$region_select =="GBRMPA.MA") {
       this.names=as.character(
         (regions%>%
            filter(Region==input$region_select)%>%
@@ -171,11 +177,25 @@ server <- function(session, input, output) {
         (regions%>%
            filter(Region==input$region_select)%>%
            select(Name)%>%
-           st_drop_geometry())$Name
+           st_drop_geometry())$Name%>%
+          unique
       )
       updatePickerInput(session = session, inputId = "value_select", 
                         choices = this.names, 
                         selected = "Girringun")
+      
+    }
+    
+    if (input$region_select =="ZONE") {
+      this.names=as.character(
+        (regions%>%
+           filter(Region==input$region_select)%>%
+           select(Name)%>%
+           st_drop_geometry())$Name
+      )
+      updatePickerInput(session = session, inputId = "value_select", 
+                        choices = this.names, 
+                        selected = "Central")
       
     }
     
@@ -193,7 +213,7 @@ server <- function(session, input, output) {
     }
     
     
-    if (input$region_select=="Reef") {
+    if (input$region_select=="reef") {
       this.names=as.character(
         (reefs%>%
            select(Name)%>%
@@ -201,7 +221,8 @@ server <- function(session, input, output) {
       )
       updatePickerInput(session = session, inputId = "value_select",
                         choices =this.names,
-                        selected = "Pandora Reef (deep)")
+                        selected = "Pandora (deep slope)")
+      
     }
     
   }, ignoreInit = TRUE)

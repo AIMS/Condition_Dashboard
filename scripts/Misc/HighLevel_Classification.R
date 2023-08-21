@@ -18,26 +18,26 @@ Cond.Class<-function(df){
                          ##No all indicators are calculated
                          'all.na>0',
                          #Critical
-                         'Coral.cover=="No" & Performance=="No" & Processes=="All.No"',
-                         'Coral.cover=="No" & Performance=="No" & Processes=="AtLeastOne.No"',
+                         'Coral.cover=="No" & Recovery.performance=="No" & Processes=="All.No"',
+                         'Coral.cover=="No" & Recovery.performance=="No" & Processes=="AtLeastOne.No"',
                          
                          #Warning II
-                         'Coral.cover=="No" & Performance=="No" & Processes=="All.Yes"',
-                         'Coral.cover=="No" & Performance=="Yes" & Processes=="All.No"',
-                         'Coral.cover=="Yes" & Performance=="No" & Processes=="All.No"',
+                         'Coral.cover=="No" & Recovery.performance=="No" & Processes=="All.Yes"',
+                         'Coral.cover=="No" & Recovery.performance=="Yes" & Processes=="All.No"',
+                         'Coral.cover=="Yes" & Recovery.performance=="No" & Processes=="All.No"',
                          
                          #Warning I
-                         'Coral.cover=="No" & Performance=="Yes" & Processes=="AtLeastOne.No"',
-                         'Coral.cover=="Yes" & Performance=="No" & Processes=="AtLeastOne.No"',
-                         'Coral.cover=="Yes" & Performance=="Yes" & Processes=="All.No"',
+                         'Coral.cover=="No" & Recovery.performance=="Yes" & Processes=="AtLeastOne.No"',
+                         'Coral.cover=="Yes" & Recovery.performance=="No" & Processes=="AtLeastOne.No"',
+                         'Coral.cover=="Yes" & Recovery.performance=="Yes" & Processes=="All.No"',
                          
                          #Watch
-                         'Coral.cover=="No" & Performance=="Yes" & Processes=="All.Yes"',
-                         'Coral.cover=="Yes" & Performance=="Yes" & Processes=="AtLeastOne.No"',
-                         'Coral.cover=="Yes" & Performance=="No" & Processes=="All.Yes"',
+                         'Coral.cover=="No" & Recovery.performance=="Yes" & Processes=="All.Yes"',
+                         'Coral.cover=="Yes" & Recovery.performance=="Yes" & Processes=="AtLeastOne.No"',
+                         'Coral.cover=="Yes" & Recovery.performance=="No" & Processes=="All.Yes"',
                          
                          #Good
-                         'Coral.cover=="Yes" & Performance=="Yes" & Processes=="All.Yes"'
+                         'Coral.cover=="Yes" & Recovery.performance=="Yes" & Processes=="All.Yes"'
                        )
   )
   
@@ -52,15 +52,15 @@ Cond.Class<-function(df){
       # rename(Score=Median)%>%
       mutate(
         crit=case_when(
-          ((Indicator %in% c("Composition","Macroalgae","Juvenile", "Coral.cover")) &
+          ((Indicator %in% c("Community.composition","Macroalgae","Juvenile.density", "Coral.cover")) &
           Upper<=0.5) ~T, ##at or Below threshold for most of the indicators
-          ((Indicator == "Performance") &
+          ((Indicator == "Recovery.performance") &
              Upper<0.5) ~ T,##[TODO:REview this] Below threshold for Recovery
           is.na(Median) ~NA,
           .default=F
         ),
         Ind.g=case_when(
-          Indicator %in% c("Composition","Macroalgae","Juvenile") ~ "Processes",
+          Indicator %in% c("Community.composition","Macroalgae","Juvenile.density") ~ "Processes",
           .default=Indicator
         )
       )%>%
@@ -74,8 +74,8 @@ Cond.Class<-function(df){
       crit=case_when(
         ((Ind.g =="Coral.cover") & crit.no==1) ~ "No",
         ((Ind.g =="Coral.cover")  &  crit.no==0) ~ "Yes",
-        ((Ind.g =="Performance")  &  crit.no==1) ~ "No",
-        ((Ind.g =="Performance")  &  crit.no==0) ~ "Yes",
+        ((Ind.g =="Recovery.performance")  &  crit.no==1) ~ "No",
+        ((Ind.g =="Recovery.performance")  &  crit.no==0) ~ "Yes",
         ((Ind.g %in% c("Processes")  &  crit.no==3)) ~ "All.No",
         ((Ind.g %in% c("Processes")  &  crit.no==0)) ~ "All.Yes",
         ((Ind.g %in% c("Processes")  & crit.no %in% (c(1,2)))) ~ "AtLeastOne.No",
@@ -83,7 +83,7 @@ Cond.Class<-function(df){
       )%>%
       select(-crit.no)%>%
       spread(key=Ind.g, val=crit)%>%
-      mutate(all.na=sum(c(is.na(Coral.cover),is.na(Performance),is.na(Processes))))
+      mutate(all.na=sum(c(is.na(Coral.cover),is.na(Recovery.performance),is.na(Processes))))
     
     c.df$Class=apply(
       do.call(rbind, 

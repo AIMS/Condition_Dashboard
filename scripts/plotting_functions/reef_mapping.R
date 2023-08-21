@@ -48,16 +48,13 @@ map.reefs<-function(sf.frame, reef, b, y){
     
     leaflet(sf.frame) %>%
       # addMarkers(label=~Name)%>%
+      addProviderTiles("Esri.WorldImagery", group="Satellite")%>%      
       addProviderTiles("CartoDB.DarkMatter", group="Dark")%>%
-      addProviderTiles("Esri.WorldImagery", group="Satellite")%>%
-      # addEsriTiledMapLayer(
-      #   url = "https://tiles.arcgis.com/tiles/ll1QQ2mI4WMXIXdm/arcgis/rest/services/SSR_Sentinel_2018/MapServer",
-      #   group="Satellite")%>%
       addCircleMarkers(data=sf.frame, label = ~Name, fillColor =  ~qpal(Class), 
                        # popup = ~c(Name,Class),
                        popup = ~paste(Name.Labels(Name),
                                       "<br>Coral Cover above reference:",Coral.cover,
-                                      "<br>Recovery above reference:",Performance,
+                                      "<br>Recovery above reference:",Recovery.performance,
                                       "<br>Processes above reference:", Processes),
                        fillOpacity = ~factop(Class),
                        stroke=F,
@@ -67,7 +64,7 @@ map.reefs<-function(sf.frame, reef, b, y){
                 title = "Overall Condition",
                 opacity = 1)%>%
       # Use addLayersControl to allow users to toggle between basemaps
-      addLayersControl(baseGroups = c("Dark","Satellite"))%>%# groupOptions("Satellite", zoomLevels = 8:15)
+      addLayersControl(baseGroups = c("Satellite","Dark"))%>%# groupOptions("Satellite", zoomLevels = 8:15)
       addPolygons(data=b%>%
                     st_cast(.,"POLYGON")%>%
                     st_transform(4326),
@@ -134,7 +131,7 @@ map.ind<-function(df, I,c, r){
                        # popup = ~c(Name,Class),
                        popup = ~paste(Name.Labels,
                                       "<br>Coral Cover above reference:",Coral.cover,
-                                      "<br>Recovery above reference:",Performance,
+                                      "<br>Recovery above reference:",Recovery.performance,
                                       "<br>Processes above reference:", Processes),
                        fillOpacity = ~factop(Class),
                        stroke=F,
