@@ -16,6 +16,9 @@
 #   filter(Name==input$value_select)%>%
 #   droplevels()
 
+# Angus testing
+
+
 #' Format character vector into HTML bulleted list
 #' 
 #' @param char a character vector. Each element will be a bullet
@@ -38,15 +41,10 @@ format_html_list <- function(char, ordered = FALSE){
 sum.reef.tx<-function(i.df, y){
   require(tidyverse)
   source("scripts/Misc/HighLevel_Classification.R")
-  Indi<-i.df %>% 
-    dplyr::select(Indicator) %>% 
-    unique %>%
-    mutate(Ind.desc=case_match(Indicator, "Coral.cover"~"hard coral cover",
-                               "Macroalgae" ~"proportion of macroalgae in the algal cover",
-                               "Juvenile.density"~"density of Juvenile.density hard corals",
-                               "Recovery.performance"~ "recovery rate of hard coral cover",
-                               "Community.composition"~"coral community composition"))
+
   
+  a.txt<-read_csv(file = "scripts/Misc/Synoptic_text_reef.csv")
+  taxaLookup<-read.csv(file="scripts/Misc/taxaLookup.csv")
   
   #************************************
   # Overall classification of condition
@@ -55,16 +53,43 @@ sum.reef.tx<-function(i.df, y){
   Cl<-i.df%>%filter(Year==y, Reference=="Baseline")%>%Cond.Class()%>%pull(Class)
   
   Autotext.class="In <b>%s</b>, the overal condition reef habitats was classified as <b>%s</b>." 
+  # sent.class=
+  #   sprintf(Autotext.class,
+  #           y,
+  #           Cl)
   sent.class=
-    sprintf(Autotext.class,
-            y,
-            Cl)
+    sprintf(paste(
+      a.txt%>%filter(Variable=="Autotext.class")%>%pull(Description), ##overall statement
+      a.txt%>%filter(Variable==Cl)%>%pull(Description)),
+      y,
+      Cl)
+  
+  # #**************************************
+  # ## within function testing data input
+  # #**************************************
+  # a.txt<-read_csv(file = "Synoptic_text_reef.csv")
+  # indices<-read.csv(file="Indices.csv")
+  # 
+  # i.df<-indices%>%
+  #   filter(Name=="Double Cone" & Depth=="shallow slope")
+  # 
+  # taxaLookup<-read.csv(file="taxaLookup.csv")
+  # 
+  # c.df<-read.csv(file="Composition_change.csv") %>%
+  #   filter(REEF=="Double Cone" & DEPTH.f=="shallow slope") %>%
+  #   rename(Name=REEF,Depth=DEPTH.f, Year=REPORT_YEAR) %>%
+  #   group_by(Name,Depth,Year,k) %>%
+  #   arrange(desc(abs(meanDiff))) %>%
+  #   slice(1:3) %>%
+  #   ungroup %>%
+  #   mutate(Change=ifelse(meanDiff>0,"Increase","Decrease")) %>%
+  #   left_join(taxaLookup)
+  # 
+  # y=2022
   
   #***********************
   # Hard coral cover #####
   #***********************
-  
-  
   
   data<-i.df %>% 
     filter(Indicator=="Coral.cover" & Reference=="Baseline") %>% 
@@ -95,52 +120,38 @@ sum.reef.tx<-function(i.df, y){
   Low.hc<-data.hc$Upper<0.5
   Low.hc.c<-data.hc.c$Upper<0.5
   
-  Indi.desc<-as.character(data.hc %>% left_join(Indi) %>%
-                            pull(Ind.desc))
-  # Reef cover of hard corals  declined to below historical reference levels, and below consequence
-  Autotext1="The %s declined to be below historical reference levels. At current levels hard corals are unlikely to be supporting positive reef accretion."
+  State.hc<-data.hc %>%
+    mutate(St=ifelse(Upper<0.5, "below",
+                     ifelse(Lower>0.5, "above", "similar to"))) %>%
+    pull(St)
   
-  # Reef cover of hard corals declined to below historical reference levels, but above consequence.       
-  Autotext2="The %s declined to be below historical reference levels, however remains at levels sufficient for the maintainance of positive reef accretion."
+  State.hc.c<-data.hc.c %>%
+    mutate(St=ifelse(Upper<0.5, "unlikely", "likely")) %>%
+    pull(St)
   
-  # Reef cover of hard corals remain below historical reference levels, and below consequence. 
-  Autotext3="The %s has remained below historical reference levels since %s. At current levels, hard corals are unlikely to be supporting positive reef accretion."
   
-  # Reef cover of hard corals remain below historical reference levels, but above consequence at all reefs.       
-  Autotext4="The %s has remained below historical reference levels since %s, however at current levels is sufficient to support positive reef accretion."
+  ## Cover of hard corals  declined to below historical reference levels
+  # Autotext1="The cover of hard corals has declined to below historical reference levels. At current levels hard corals are %s to be supporting positive reef accretion."
+  ## Cover of hard corals below historical reference levels for a while
+  # Autotext2="The cover of hard corals has been below historical reference levels since %s. At current levels hard corals are %s to be supporting positive reef accretion."
+  ## Cover of hard corals at or above historical reference levels for a while
+  # Autotext3="The cover of hard corals is %s historical reference levels. At current levels hard corals are %s to be supporting positive reef accretion."
   
-  # Reef cover of hard corals at or above historical reference levels, but below consequence. 
-  Autotext5="The %s is at or above historical reference levels but lower than that required for positive reef accretion."
   
-  # Reef cover of hard corals at or above historical reference levels, and above consequence.       
-  Autotext6="The %s is at or above historical reference levels and sufficent to maintain positive reef accretion."
-  
-  sent.hc=
-    ifelse(isTRUE(Low.hc) & low.years==1 & isTRUE(Low.hc.c),
-           sprintf(Autotext1,
-                   Indi.desc),
-           ifelse(isTRUE(Low.hc) & low.years==1 & isFALSE(Low.hc.c),
-                  sprintf(Autotext2,
-                          Indi.desc),
-                  ifelse(isTRUE(Low.hc) & low.years>1 & isTRUE(Low.hc.c),
-                         sprintf(Autotext3,
-                                 Indi.desc,
-                                 first.low),
-                         ifelse(isTRUE(Low.hc) & low.years>1 & isFALSE(Low.hc.c),
-                                sprintf(Autotext4,
-                                        Indi.desc,
-                                        first.low),
-                                ifelse(isFALSE(Low.hc) & isTRUE(Low.hc.c),
-                                       sprintf(Autotext5,
-                                               Indi.desc),
-                                       if(isFALSE(Low.hc) & isFALSE(Low.hc.c)){
-                                         sprintf(Autotext6,
-                                                 Indi.desc)})
-                         )
+  sent.hc= ifelse(low.years==1,
+                  sprintf(a.txt%>%filter(Variable=="Autotext1")%>% pull(Description),
+                  State.hc.c),
+           ifelse(low.years>1,
+                  sprintf(a.txt%>%filter(Variable=="Autotext2")%>%pull(Description),
+                          first.low,
+                          State.hc.c),
+                  sprintf(a.txt%>%filter(Variable=="Autotext3")%>%pull(Description),
+                                 State.hc,
+                                 State.hc.c)
                   )
            )
-    )
-  
+ 
+  if(is.na(data.hc$Upper)){sent.hc=NULL}
   #*********************************#
   # Recovery.performance Indicator  ##########
   #*********************************#
@@ -156,71 +167,53 @@ sum.reef.tx<-function(i.df, y){
   Low.pe<-data.p$Upper<0.5
   Low.pe.c<-data.p.c$Upper<0.5
   
-  Indi.desc.pe<-as.character(Indi %>% 
-                               filter(Indicator=="Recovery.performance") %>% 
-                               pull(Ind.desc))
+  Concern<-ifelse(isFALSE(Low.hc), "concern","additional concern")
+  
+  # Indi.desc.pe<-as.character(Indi %>% 
+  #                              filter(Indicator=="Recovery.performance") %>% 
+  #                              pull(Ind.desc))
   ##  Separate sentences for Regional and reef level summary to allow combination as appropriate
   
-  # Reef Recovery.performance baseline low, HC ok
-  Autotext7="In contrast to scores for %s, the %s is lower than expected for reefs in this bioregion."
+  ## Reef Recovery.performance baseline low
+  # Autotext4="Of %s is that during the most recent recovery period, the rate of increase in hard coral cover was lower than expected for a reef in this bioregion."
+  # 
+  ## Reef Recovery.performance baseline and critical both low, 
+  # Autotext5="Of %s is that during the most recent recovery period, the rate of increase in hard coral cover was lower than expected for a reef in this bioregion and declining."
+  # 
+  # # Reef Recovery.performance at expectations, HC at or above 
+  # Autotext6="In addition to hard coral cover being %s historical reference levels, during the most recent recovery period coral cover increased at a rate expected for a reef in this bioregion."
+  # 
+  # # Reef Recovery.performance at expectations, but slowing, HC at or above 
+  # Autotext7="In addition to hard coral cover being %s historical reference levels, during the most recent recovery period coral cover increased at a rate expected for a reef in this bioregion, but has shown a recent decline."
+  # 
+  # # Reef Recovery.performance at expectations, HC low
+  # Autotext8="Encouragingly, during the most recent recovery period coral cover increased at a rate expected for a reef in this bioregion."
+  # 
+  # Autotext9="An assessment of the rate of recovery of hard coral cover for this reef could not be made."
   
-  # Reef Recovery.performance below expectations, HC low 
-  Autotext8="Compounding low %s scores, the %s is also lower than expected for reefs in this bioregion."
-  
-  # Reef Recovery.performance at expectations, HC at or above 
-  Autotext9="Supporting scores for %s, the %s was consistent with that expected for reefs in this bioregion."
-  
-  # Reef Recovery.performance at expectations, HC low
-  Autotext10="Although %s is low, the %s was consistent with that expected for reefs in this bioregion."
-  
-  # Reef level Critical Recovery.performance low, and Baseline Recovery.performance low
-  Autotext11="In addition to the slow rate of recovery relative to historical values, the %s has declined relative the reef's recent recovery trajectory."
-  
-  # Reef level Critical Recovery.performance low and Baseline Recovery.performance ok  
-  Autotext12="Despite the rate of recovery remaining similar to historical values for this bioregion, the %s has declined relative the reef's recent recovery trajectory."
-  
-  # Reef level Critical Recovery.performance ok
-  Autotext13="The current %s remains similar the reef's recent recovery trajectory."
-  
-  Autotext13a="The recent recovery trajectory for this reef could not be estimated due to lack of sufficient number of observations"
-  Autotext13b="The expected recovery for reefs in this bioregion could not be estimated due to lack of sufficient number of observations"
-  
-  
-  # Recovery not estimated or other adjustment made?   
-  Autotext.no.Recovery.performance.estimate=""     ##########---------Yet to be decided 
   
   sent.pe=
-    ifelse(isTRUE(Low.pe) & isFALSE(Low.hc),
-           sprintf(Autotext7,
-                   Indi.desc,
-                   Indi.desc.pe),
-           ifelse(isTRUE(Low.pe) & isTRUE(Low.hc),
-                  sprintf(Autotext8,
-                          Indi.desc,
-                          Indi.desc.pe),
-                  ifelse(isFALSE(Low.pe) & isFALSE(Low.hc),
-                         sprintf(Autotext9,
-                                 Indi.desc,
-                                 Indi.desc.pe),
-                         if(isFALSE(Low.pe) & isTRUE(Low.hc)){
-                           sprintf(Autotext10,
-                                   Indi.desc,
-                                   Indi.desc.pe)}else{Autotext13b})
+    ifelse(isTRUE(Low.pe) & !isTRUE(Low.pe.c),
+           sprintf(a.txt%>%filter(Variable=="Autotext4")%>%pull(Description),
+                   Concern),
+           ifelse(isTRUE(Low.pe) & isTRUE(Low.pe.c),
+                  sprintf(a.txt%>%filter(Variable=="Autotext5")%>%pull(Description),
+                          Concern),
+                  ifelse(isFALSE(Low.pe) & isFALSE(Low.hc) & !isTRUE(Low.pe.c),
+                         sprintf(a.txt%>%filter(Variable=="Autotext6")%>%pull(Description),
+                                 State.hc),
+                         ifelse(isFALSE(Low.pe) & isFALSE(Low.hc) & isTRUE(Low.pe.c),
+                                sprintf(a.txt%>%filter(Variable=="Autotext7")%>%pull(Description),
+                                        State.hc),
+                                if(isFALSE(Low.pe) & isTRUE(Low.hc) & !isTRUE(Low.pe.c)){
+                                  sprintf(a.txt%>%filter(Variable=="Autotext8")%>%pull(Description),
+                                          State.hc)}
+                                else{a.txt%>%filter(Variable=="Autotext9")%>%pull(Description)})
+                  )
+                  )
            )
-    )
   
-  sent.pe.c=
-    ifelse(isTRUE(Low.pe.c) & isTRUE(Low.pe),
-           sprintf(Autotext11,
-                   Indi.desc.pe),
-           ifelse(isTRUE(Low.pe.c) & isFALSE(Low.pe),
-                  sprintf(Autotext12,
-                          Indi.desc.pe),
-                  if(isFALSE(Low.pe.c)){
-                    sprintf(Autotext13,
-                            Indi.desc.pe)} else{Autotext13a})
-    )
-  
+  if(is.na(data.p$Upper)){sent.pe=NULL}
   
   #********************##
   # MA and Juveniles ####
@@ -237,10 +230,18 @@ sum.reef.tx<-function(i.df, y){
   Low.m<-data.m$Upper<0.5
   Low.m.c<-data.m.c$Upper<0.5
   
-  Indi.desc.m<-as.character(Indi %>% 
-                              filter(Indicator=="Macroalgae") %>% 
-                              pull(Ind.desc))
+  State.ma<-data.m %>%
+    mutate(St=ifelse(Upper<0.5, "above",
+                     ifelse(Lower>0.5, "below", "similar to"))) %>%
+    pull(St)
   
+  
+  Conseq.ma<-ifelse(isFALSE(Low.m.c), "likely","unlikely")
+  
+  # Indi.desc.m<-as.character(Indi %>% 
+  #                             filter(Indicator=="Macroalgae") %>% 
+  #                             pull(Ind.desc))
+  # 
 
   #JUv data
   data.j<-i.df%>% 
@@ -254,198 +255,42 @@ sum.reef.tx<-function(i.df, y){
   Low.j<-data.j$Upper<0.5
   Low.j.c<-data.j.c$Upper<0.5
   
-  Indi.desc.j<-as.character(Indi %>% 
-                              filter(Indicator=="Juvenile.density") %>% 
-                              pull(Ind.desc))
+  State.j<-data.j %>%
+    mutate(St=ifelse(Upper<0.5, "below",
+                     ifelse(Lower>0.5, "above", "similar to"))) %>%
+    pull(St)
   
-  # Both MA and Juv Low, Recovery.performance and HC ok -Watch/Warning1
-  Autotext14="Despite the observed cover and Recovery.performance of hard coral communities, low scores of %s and %s are of concern." 
+  Concern.j.low<-ifelse(isTRUE(Low.j.c), "Of added concern is that","However")
+  Concern.j.high<-ifelse(isTRUE(Low.j.c),"However", "In addition")
+  Conseq.j.low<-ifelse(isTRUE(Low.j.c), "also below the threshold that should facilitate","adequate to promote")
+  Conseq.j.high<-ifelse(isTRUE(Low.j.c), "below the threshold that should facilitate","adequate to promote")
   
-  # Both MA and Juv Low, Recovery.performance low, HC ok -Warning1/Warning2
-  # Both MA and Juv Low, Recovery.performance ok, HC low -Warning1/Warning2
-  # Both MA and Juv Low, Recovery.performance and HC low -Critical
-  Autotext15="Further limiting the assessemnt of coral communities are that %s is below, and %s above historical reference levels." 
-  
-  # Both MA and Juv ok, Recovery.performance and HC low -Warning2/Critical
-  Autotext16="In contrast to the cover and Recovery.performance of hard coral communities, that %s is below and %s are above historical reference levels is a positive sign."
-  
-  # Both MA and Juv ok, Recovery.performance low, HC ok -Watch/Warning1
-  Autotext17="Although %s is low, that %s is below and %s are above historical reference levels is a positive sign."
-  
-  # Both MA and Juv ok, Recovery.performance ok, HC low -Watch/Warning1
-  Autotext18="Although %s is low, neither %s, %s or %s, are in worse condition relative to historical reference levels."
-  
-  # Both MA and Juv ok, Recovery.performance and HC ok -Good/Watch
-  Autotext19="Scores for %s and %s add support to the ongoning resilience of coral communities demonstrated by the Coral cover and Recovery.performance Indicators."
-  
-  #One of MA or Juv ok, Recovery.performance and HC ok -Watch
-  Autotext20="While %s does not deviate from historical reference levels, this is not the case for %s."
-  
-  # One of Ma or Juv ok, Recovery.performance low, HC ok -Warning1
-  Autotext21="While %s does not deviate from historical reference levels, this is not the case for %s and adds to the concern raised by the low Recovery.performance score."
-  
-  # One of Ma or Juv ok, Recovery.performance ok, HC low -Warning1
-  Autotext22="While %s does not deviate from historical reference levels, this is not the case for %s and raises some concern for future recovery."
-  
-  # One of Ma or Juv ok, Recovery.performance and HC low -Critical
-  Autotext23="While %s does not deviate from historical reference levels, this is not the case for %s and this raises further concern for the maintaininece of recovery processes."
-  
-  
-  sent.jma=
     
-    ifelse(isFALSE(Low.pe) & isFALSE(Low.hc) & isTRUE(Low.j) & isTRUE(Low.m),
-           sprintf(Autotext14,
-                   Indi.desc.j,
-                   Indi.desc.m),
-           
-           ifelse(isFALSE(Low.pe) & isTRUE(Low.hc) & isTRUE(Low.j) & isTRUE(Low.m),
-                  sprintf(Autotext15,
-                          Indi.desc.j,
-                          Indi.desc.m),
-                  
-                  ifelse(isTRUE(Low.pe) & isFALSE(Low.hc) & isTRUE(Low.j) & isTRUE(Low.m),
-                         sprintf(Autotext15,
-                                 Indi.desc.j,
-                                 Indi.desc.m),
-                         
-                         ifelse(isTRUE(Low.pe) & isTRUE(Low.hc) & isTRUE(Low.j) & isTRUE(Low.m),
-                                sprintf(Autotext15,
-                                        Indi.desc.j,
-                                        Indi.desc.m),
-                                
-                                ifelse(isTRUE(Low.pe) & isTRUE(Low.hc) & isFALSE(Low.j) & isFALSE(Low.m),
-                                       sprintf(Autotext16,
-                                               Indi.desc.m,
-                                               Indi.desc.j),
-                                       
-                                       ifelse(isTRUE(Low.pe) & isFALSE(Low.hc) & isFALSE(Low.j) & isFALSE(Low.m),
-                                              sprintf(Autotext17,
-                                                      Indi.desc.pe,
-                                                      Indi.desc.m,
-                                                      Indi.desc.j),
-                                              
-                                              ifelse(isFALSE(Low.pe) & isTRUE(Low.hc) & isFALSE(Low.j) & isFALSE(Low.m),
-                                                     sprintf(Autotext18,
-                                                             Indi.desc,
-                                                             Indi.desc.j,
-                                                             Indi.desc.m,
-                                                             Indi.desc.pe),
-                                                     
-                                                     ifelse(isFALSE(Low.pe) & isFALSE(Low.hc) & isFALSE(Low.j) & isFALSE(Low.m),
-                                                            sprintf(Autotext19,
-                                                                    Indi.desc.j,
-                                                                    Indi.desc.m),
-                                                            
-                                                            ifelse(isFALSE(Low.pe) & isFALSE(Low.hc) & isFALSE(Low.j) & isTRUE(Low.m),
-                                                                   sprintf(Autotext20,
-                                                                           Indi.desc.j,
-                                                                           Indi.desc.m),
-                                                                   
-                                                                   ifelse(isTRUE(Low.pe) & isFALSE(Low.hc) & isFALSE(Low.j) & isTRUE(Low.m),
-                                                                          sprintf(Autotext21,
-                                                                                  Indi.desc.j,
-                                                                                  Indi.desc.m),
-                                                                          
-                                                                          ifelse(isFALSE(Low.pe) & isTRUE(Low.hc) & isFALSE(Low.j) & isTRUE(Low.m),
-                                                                                 sprintf(Autotext22,
-                                                                                         Indi.desc.j,
-                                                                                         Indi.desc.m),
-                                                                                 
-                                                                                 ifelse(isTRUE(Low.pe) & isTRUE(Low.hc) & isFALSE(Low.j) & isTRUE(Low.m),
-                                                                                        sprintf(Autotext23,
-                                                                                                Indi.desc.j,
-                                                                                                Indi.desc.m),
-                                                                                        
-                                                                                        ifelse(isFALSE(Low.pe) & isFALSE(Low.hc) & isFALSE(Low.m) & isTRUE(Low.j),
-                                                                                               sprintf(Autotext20,
-                                                                                                       Indi.desc.m,
-                                                                                                       Indi.desc.j),
-                                                                                               
-                                                                                               ifelse(isTRUE(Low.pe) & isFALSE(Low.hc) & isFALSE(Low.m) & isTRUE(Low.j),
-                                                                                                      sprintf(Autotext21,
-                                                                                                              Indi.desc.m,
-                                                                                                              Indi.desc.j),
-                                                                                                      
-                                                                                                      ifelse(isFALSE(Low.pe) & isTRUE(Low.hc) & isFALSE(Low.m) & isTRUE(Low.j),
-                                                                                                             sprintf(Autotext22,
-                                                                                                                     Indi.desc.m,
-                                                                                                                     Indi.desc.j),
-                                                                                                             
-                                                                                                             if(isTRUE(Low.pe) & isTRUE(Low.hc) & isFALSE(Low.m) & isTRUE(Low.j)){
-                                                                                                               sprintf(Autotext23,
-                                                                                                                       Indi.desc.m,
-                                                                                                                       Indi.desc.j)})
-                                                                                               )
-                                                                                        )
-                                                                                 )
-                                                                          )
-                                                                   )
-                                                            )
-                                                     )
-                                              )
-                                       )
-                                )
-                         )
-                  )
-           )
-    )
+  # Autotext10="The density of juvenile corals was %s historical reference levels." 
+  #
+  # Autotext11="%s the density of <i>Acropora</i> juveniles were %s the timely recovery of coral cover." 
+  # 
+  # Autotext12="The representation of macroalgae species within the benthic algal communities was %s historical reference levels. At current levels macroalgae are %s to be limiting coral community resilience."
+  # 
+ 
+  sent.j.state=sprintf(a.txt%>%filter(Variable=="Autotext10")%>%pull(Description),
+                       State.j)
+    
+  sent.j.c= ifelse(isTRUE(Low.j),
+           sprintf(a.txt%>%filter(Variable=="Autotext11")%>%pull(Description),
+                   Concern.j.low,
+                   Conseq.j.low),
+          sprintf(a.txt%>%filter(Variable=="Autotext11")%>%pull(Description),
+                  Concern.j.high,
+                  Conseq.j.high) )
   
+  sent.ma=sprintf(a.txt%>%filter(Variable=="Autotext12")%>%pull(Description),
+                  State.ma,
+                  Conseq.ma)
   
-  
-  # Juvenile.density consequence low, baseline ok
-  Autotext24="Despite the score for %s, the density of <i>Acropora</i> juveniles is low and this may limit the future rate of coral cover recovery."
-  
-  #Juvenile.density consequence low, baseline low
-  Autotext25="Compounding low scores for %s is the low density of <i>Acropora</i> juveniles, a group important for maintaining high rates of coral cover recovery."
-  
-  #Juvenile.density consequence ok, baseline ok
-  Autotext26="In addition to the scores for %s, the density of <i>Acropora</i> juveniles are sufficient to promote coral cover recovery."
-  
-  #Juvenile.density consequence ok, baseline low
-  Autotext26="Although the %s is below historical reference levels the density of <i>Acropora</i> juveniles are sufficient to promote coral cover recovery."
-  
-  # Macroalgae consequence low, baseline low
-  Autotext27="In addition to having increased relative to reference levels, %s are at levels likely to limit coral community recovery potential."
-  
-  # Macroalgae consequence  low, baseline ok
-  Autotext28="Although %s does not exceeed historical reference levels, they are at levels likely to limit coral community recovery potential."
-  
-  # Macroalgae consequence ok, baseline low
-  Autotext29="Despite %s having increased beyond historical reference levels, macroalgae remain at levels unlikley to severely impact coral communities."
-  
-  # Macroalgae consequence ok, baseline ok
-  Autotext30="%s does not exceeded historical reference levels and remains at levels unlikely to severely impact coral communities."
-  
-  
-  sent.j.c=
-    ifelse(isTRUE(Low.j.c) & isFALSE(Low.j),
-           sprintf(Autotext24,
-                   Indi.desc.j),
-           ifelse(isTRUE(Low.j.c) & isTRUE(Low.j),
-                  sprintf(Autotext25,
-                          Indi.desc.j),
-                  ifelse(isFALSE(Low.j.c) & isFALSE(Low.j),
-                         sprintf(Autotext26,
-                                 Indi.desc.j),
-                         if(isFALSE(Low.j.c) & isTRUE(Low.j)){
-                           sprintf(Autotext27, Indi.desc.m)})
-           )
-    )
-  
-  sent.m.c=
-    ifelse(isTRUE(Low.m.c) & isTRUE(Low.m),
-           sprintf(Autotext27),
-           ifelse(isTRUE(Low.m.c) & isFALSE(Low.m),
-                  sprintf(Autotext28,
-                          Indi.desc.m),
-                  ifelse(isFALSE(Low.m.c) & isTRUE(Low.m),
-                         sprintf(Autotext29,
-                                 Indi.desc.m),
-                         if(isFALSE(Low.m.c) & isFALSE(Low.m)){
-                           sprintf(Autotext27,
-                                   Indi.desc.m)})
-           )
-    )
+  if(is.na(data.j$Upper)){sent.j.state=NULL}
+  if(is.na(data.j$Upper)){sent.j.c=NULL}
+  if(is.na(data.m$Upper)){sent.ma=NULL}
   
   #************#####
   # Composition#####
@@ -454,8 +299,6 @@ sum.reef.tx<-function(i.df, y){
   data.co<-i.df %>% 
     filter(Indicator=="Community.composition" &  Reference=="Baseline" & Year==y) %>% 
     droplevels() 
-  
-
   
   data.co.low<-i.df%>%
     filter(Indicator=="Community.composition" & Reference=="Baseline") %>% 
@@ -477,88 +320,133 @@ sum.reef.tx<-function(i.df, y){
   Low.co<-data.co$Upper<0.5
   Low.co.c<-data.co.c$Upper<0.5
   
-  Indi.desc.co<-as.character(Indi %>% 
-                               filter(Indicator=="Community.composition") %>% 
-                               pull(Ind.desc))
   
-
-  # comp low current year only - hc ok. 
-  Autotext32="Despite the cover of hard corals remaining at or above reference levels, there is evidence that the composition of communities have changed."
-  
-  # comp low >1 year - hc ok. 
-  Autotext32a="Despite the cover of hard corals remaining at or above reference levels, since %s the composition of communities have remained distinct from those historically observed."
-  
-  # comp ok - hc ok, 
-  Autotext33="In addition to the cover of hard corals remaining within reference levels there is no evidence of a substantial change in the composition of coral communities."
-  
-  # comp low - hc low. current year
-  Autotext34="In addition to the low cover of hard corals, the community composition has changed compared to the historical reference."
-  
-  # comp low >1 year - hc low.
-  Autotext35="In addition to the low cover of hard corals, the composition of communities have remianed distinct from those historically observed since %s."
-  
-  # comp ok - hc low
-  Autotext36="Although the cover of hard corals is low, there is no evidence of a substantial change in the composition of coral communities."
-  
-  # comp low - hc high
-  Autotext36a="Although the cover of hard corals is at or above the historical reference for this reef, the composition of coral communities has changed substantially."
-  
+  # # comp low current year only - hc ok. 
+  # Autotext13="Despite the cover of hard corals remaining at or above reference levels, there is evidence that the composition of communities have changed."
+  # 
+  # # comp low >1 year - hc ok. 
+  # Autotext14="Despite the cover of hard corals remaining at or above reference levels, since %s the composition of communities have remained distinct from those historically observed."
+  # 
+  # # comp ok - hc ok, 
+  # Autotext15="In addition to the cover of hard corals remaining within reference levels there is no evidence of a substantial change in the composition of coral communities."
+  # 
+  # # comp low - hc low. current year
+  # Autotext16="In addition to the low cover of hard corals, the community composition has changed compared to the historical reference."
+  # 
+  # # comp low >1 year - hc low.
+  # Autotext17="In addition to the low cover of hard corals, the composition of communities have remained distinct from those historically observed since %s."
+  # 
+  # # comp ok - hc low
+  # Autotext18="Although the cover of hard corals is low, there is no evidence of a substantial change in the composition of coral communities."
+  # 
   
   sent.co<-                                           
     ifelse(isTRUE(Low.co) & isFALSE(Low.hc)& low.years.co==1,
-           sprintf(Autotext32),
-           ifelse(isTRUE(Low.co) & isFALSE(Low.hc) & low.years.co>0,
-                  sprintf(Autotext32a,
+           a.txt%>%filter(Variable=="Autotext13")%>%pull(Description),
+           ifelse(isTRUE(Low.co) & isFALSE(Low.hc) & low.years.co>1,
+                  sprintf(a.txt%>%filter(Variable=="Autotext14")%>%pull(Description),
                           start.run.co),
-                  ifelse(isFALSE(Low.co) & isFALSE(Low.hc) & low.years.co==0,
-                         Autotext33,
+                  ifelse(isFALSE(Low.co) & isFALSE(Low.hc),
+                         a.txt%>%filter(Variable=="Autotext15")%>%pull(Description),
                          ifelse(isTRUE(Low.co) & isTRUE(Low.hc) & low.years.co==0,
-                                Autotext34,
+                                a.txt%>%filter(Variable=="Autotext16")%>%pull(Description),
                                 ifelse(isTRUE(Low.co) & isTRUE(Low.hc)& low.years.co>0,
-                                       sprintf(Autotext35,
+                                       sprintf(a.txt%>%filter(Variable=="Autotext17")%>%pull(Description),
                                                start.run.co),
-                                       if(isFALSE(Low.co) & isTRUE(Low.hc)){Autotext36}
-                                       else{Autotext36a})
+                                               ifelse(isFALSE(Low.co) & isFALSE(Low.hc),
+                                                      a.txt%>%filter(Variable=="Autotext18")%>%pull(Description),"")
+                                )
                          )
                   )
            )
     )
+                               
+                         
+  # new stable state
+  #Autotext19="However, the taxonomic composition of coral communities are similar to those more recently observed, suggesting a persistent shift."
   
   # new stable state
-  Autotext37="While the taxonomic composition of coral communities remains distinct from those observed during the historic reference period they are similar to those more recently observed, suggesting a persitent shift."
-  
-  # new stable state
-  Autotext38="In addition to the taxonomic composition of coral communities remaining distinct from those observed during the historic reference period they are also distinct from those more recently observed, suggesting ongoing changes in community composition."
-  
-
+  #Autotext20="The taxonomic composition of coral communities are also distinct from those more recently observed, suggesting ongoing changes in community composition."
   
   sent.k3<-                                           
     ifelse(isTRUE(Low.co) & isFALSE(Low.co.c),
-           sprintf(Autotext37,
-                   n.reef.co.low),
+           a.txt%>%filter(Variable=="Autotext19")%>%pull(Description),
            ifelse(isTRUE(Low.co) & isTRUE(Low.co.c),
-                  Autotext38,""))
+                  a.txt%>%filter(Variable=="Autotext20")%>%pull(Description),""))
   if(sent.k3==""){sent.k3=NULL}
-
+  if(sent.co==""){sent.co=NULL}
+  ####### --- Taxa responsible for composition shift
+  taxa<-c.df %>% filter(Year==y)
+  
+  inc.6<-taxa %>% 
+    filter(Change=="Increase" & k==6) %>%
+    pull(page.desc)
+  
+  inc<-ifelse(length(inc.6)==1, inc.6[1],
+                   ifelse(length(inc.6)==2, paste(inc.6[1],"and", inc.6[2]),
+                          paste0(inc.6[1],", ", inc.6[2], " and", inc.6[3])
+                   )
+  )
+  
+  dec.6<-taxa %>% 
+    filter(Change=="Decrease" & k==6) %>%
+    pull(page.desc)
+  
+  dec<-ifelse(length(dec.6)==1, dec.6[1],
+                    ifelse(length(dec.6)==2, paste(dec.6[1],"and", dec.6[2]),
+                           paste0(dec.6[1],", ", dec.6[2], " and", dec.6[3])
+                    )
+  )
+  # 
+  # autotext21<-"Most infulential in observed changes in coral community composition have been increases in the relative abundance of %s and decreases in %s."
+  # 
+  # autotext22<-"Most infulential in observed changes in coral community composition have been increases in the relative abundance of %s."
+  # 
+  # autotext23<-"Most infulential in observed changes in coral community composition have been decreases in the relative abundance of %s."
+  # 
+  
+  sent.taxa=ifelse(length(inc.6)>0 & length(dec.6>0),
+                   sprintf(a.txt%>%filter(Variable=="Autotext21")%>%pull(Description),
+                           inc,
+                           dec),
+                  ifelse(length(dec)==0,
+                         sprintf(a.txt%>%filter(Variable=="Autotext22")%>%pull(Description),
+                                 inc,
+                                 sprintf(a.txt%>%filter(Variable=="Autotext23")%>%pull(Description),
+                                         dec)
+                         )
+                  )
+  )
+                  
+  
   #********************************************************************************************
   # Sampling summary lead in for context and to reduce repetition within indicator sentences####
   #********************************************************************************************
   CC='Coral.cover' %in% (i.df$Indicator)
   M="Macroalgae" %in% (i.df$Indicator)
   C="Community.composition" %in% (i.df$Indicator)
-  J="Juvenil" %in% (i.df$Indicator)
+  J="Juvenile.density" %in% (i.df$Indicator)
   P="Recovery.performance" %in% (i.df$Indicator)
   
   sample.autotext="This classification reflects the assesement of indicators relative to their historical baselines"  
   sample.autotext.n1="A clasification could not be made for this reef as estimates for all five indicators were not available"
   
   sent.samp=
-    ifelse(isTRUE(CC&C&J&P&M), sample.autotext,sample.autotext.n1)
+    ifelse(isTRUE(CC&C&J&P&M), a.txt%>%filter(Variable=="sample.autotext")%>%pull(Description),
+           a.txt%>%filter(Variable=="sample.autotext.n1")%>%pull(Description))
   
  
   #combine sentences####   
-  caption<-format_html_list(c(sent.class,sent.hc,sent.pe,
-                              sent.pe.c,sent.jma,sent.j.c,sent.m.c, sent.co, sent.k3),
+  caption<-format_html_list(c(sent.class,
+                              sent.hc,
+                              sent.pe,
+                              sent.j.state,
+                              sent.j.c,
+                              sent.ma, 
+                              sent.co, 
+                              sent.k3,
+                              sent.taxa
+                              ),
                             ordered = F)
   note<-paste0("<i>Disclaimer:</i>", sent.samp)
   

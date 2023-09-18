@@ -26,7 +26,7 @@ source("scripts/plotting_functions/temporal_plots.R")
 source("scripts/plotting_functions/comp_change.R")
 source("scripts/plotting_functions/DonutCond.R")
 source("scripts/Misc/HighLevel_Classification.R")
-source("scripts/Misc/Rep_3.1_Regional_autoText_working.R")
+source("scripts/Misc/Rep_3.1_Regional_autoText.R")
 source("scripts/Misc/Rep_3.1_Reef_autoText.R")
 
 get_reef<-function(reefName){
