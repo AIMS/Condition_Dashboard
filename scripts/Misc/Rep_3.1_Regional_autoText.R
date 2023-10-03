@@ -44,6 +44,26 @@ sum.tx.r<-function(i.df, y){
   #                              "Recovery.performance"~ "hard coral cover recovery",
   #                              "Community.composition"~"coral community composition"))
   
+  #************************************
+  # Standardise definitions, context and wording for Autotext ###########
+  #************************************
+  
+  Indi<-i.df %>% 
+    dplyr::select(Indicator) %>% 
+    unique %>%
+    mutate(Ind.desc=case_match(Indicator, "Coral.cover"~"hard coral cover",
+                               "Macroalgae" ~"macroalgae",
+                               "Juvenile.density"~"juvenile corals",
+                               "Recovery.performance"~ "recovery performance",
+                               "Community.composition"~"community composition"))
+  
+  
+  Indi.desc.pe<-as.character(Indi %>% filter(Indicator=="Recovery.performance") %>% pull(Ind.desc))
+  Indi.desc.j<-as.character(Indi %>% filter(Indicator=="Juvenile.density") %>% pull(Ind.desc))
+  Indi.desc.co<-as.character(Indi %>% filter(Indicator=="Community.composition") %>% pull(Ind.desc))
+  Indi.desc.ma<-as.character(Indi %>% filter(Indicator=="Macroalgae") %>% pull(Ind.desc))
+  Indi.desc.co<-as.character(Indi %>% filter(Indicator=="Community.composition") %>% pull(Ind.desc))
+  Indi.desc.hc<-as.character(Indi %>% filter(Indicator=="Coral.cover") %>% pull(Ind.desc))
   
   #************************************
   # Overall classification of condition ###########
@@ -397,7 +417,7 @@ sum.tx.r<-function(i.df, y){
                    State.ma),
                  sprintf(a.txt%>%filter(Variable=="Autotext15")%>%unique()%>%pull(Description),
                           Indi.desc.j,
-                          Indi.desc.m))
+                          Indi.desc.ma))
                   
 #
 #  Autotext20="At current levels macroalgae are unlikley to be limiting coral community resilience on any reefs monitored."
@@ -417,9 +437,9 @@ sent.m.c=
    )
   
   
-  #************#####
+  #********************##
   # Community.composition#####
-  #************#####
+  #********************##
   #comp data
   data.co<-i.df %>% 
     filter(Indicator=="Community.composition" &  Reference=="Baseline" & Year==y) %>% 
@@ -447,7 +467,7 @@ sent.m.c=
   Low.co.c<-data.co.c$Upper<0.5
   
   n.reef.co<-as.character(data.co %>%  pull(tn.reefs))
-  n.reef.co.low<-as.character(data.co.c %>%  pull(n.below))
+  n.reef.co.low<-as.character(data.co %>%  pull(n.below))
   
   # comp low - hc ok.
   # Autotext23="Despite the cover of hard corals remaining at or above reference levels, there is evidence that the composition of communities have changed. Such changes are evident at %s reefs."
@@ -505,18 +525,30 @@ sent.m.c=
   # # new stable state
   # Autotext32="The taxnomic community composition of coral communities remains consistent over time."
   # 
+  # sent.k3<-                                           
+  #   ifelse(isTRUE(Low.co) & isFALSE(Low.co.c),
+  #          sprintf(a.txt%>%filter(Variable=="Autotext37")%>%unique()%>%pull(Description),
+  #                  n.reef.co.low),
+  #          case_when( (isTRUE(Low.co) & isTRUE(Low.co.c)) ~  a.txt%>%filter(Variable=="Autotext38")%>%unique()%>%pull(Description),
+  #                     .default = a.txt%>%filter(Variable=="Autotext39")%>%unique()%>%pull(Description))
+  #          # if(isTRUE(Low.co) & isTRUE(Low.co.c)){
+  #          #   a.txt%>%filter(Variable=="Autotext38")%>%unique()%>%pull(Description)}else{
+  #          #     a.txt%>%filter(Variable=="Autotext39")%>%unique()%>%pull(Description)
+  #          #   } 
+  #          )
+  
   sent.k3<-                                           
     ifelse(isTRUE(Low.co) & isFALSE(Low.co.c),
-           sprintf(a.txt%>%filter(Variable=="Autotext37")%>%unique()%>%pull(Description),
-                   n.reef.co.low),
-           case_when( (isTRUE(Low.co) & isTRUE(Low.co.c)) ~  a.txt%>%filter(Variable=="Autotext38")%>%unique()%>%pull(Description),
-                      .default = a.txt%>%filter(Variable=="Autotext39")%>%unique()%>%pull(Description))
-           # if(isTRUE(Low.co) & isTRUE(Low.co.c)){
-           #   a.txt%>%filter(Variable=="Autotext38")%>%unique()%>%pull(Description)}else{
-           #     a.txt%>%filter(Variable=="Autotext39")%>%unique()%>%pull(Description)
-           #   } 
-           )
+           sprintf(a.txt%>%filter(Variable=="Autotext30")%>%unique()%>%pull(Description),
+                   n.reef.co.low),       
+           if(isTRUE(Low.co) & isTRUE(Low.co.c)){
+             a.txt%>%filter(Variable=="Autotext31")%>%unique()%>%pull(Description)}else{
+               #a.txt%>%filter(Variable=="Autotext32")%>%unique()%>%pull(Description)
+               ""
+             })
   
+  # if(isFALSE(Low.co)){sent.k3=NULL}
+  if(sent.k3==""){sent.k3=NULL}
   
   #********************************************************************************************
   # Sampling summary lead in for context and to reduce repetition within indicator sentences####
@@ -526,22 +558,7 @@ sent.m.c=
   not.pe=as.numeric(n.reefs)-as.numeric(n.reef.pe)
   not.ma=as.numeric(n.reefs)-as.numeric(n.reef.m)
   
-   Indi<-i.df %>% 
-     dplyr::select(Indicator) %>% 
-    unique %>%
-    mutate(Ind.desc=case_match(Indicator, "Coral.cover"~"hard coral cover",
-                                "Macroalgae" ~"macroalgae",
-                               "Juvenile.density"~"juvenile corals",
-                               "Recovery.performance"~ "recovery performance",
-                               "Community.composition"~"community composition"))
-  
-  
-   Indi.desc.pe<-as.character(Indi %>% filter(Indicator=="Recovery.performance") %>% pull(Ind.desc))
-   Indi.desc.j<-as.character(Indi %>% filter(Indicator=="Juvenile.density") %>% pull(Ind.desc))
-   Indi.desc.co<-as.character(Indi %>% filter(Indicator=="Community.composition") %>% pull(Ind.desc))
-   Indi.desc.ma<-as.character(Indi %>% filter(Indicator=="Macroalgae") %>% pull(Ind.desc))
-   Indi.desc.co<-as.character(Indi %>% filter(Indicator=="Community.composition") %>% pull(Ind.desc))
-   Indi.desc.hc<-as.character(Indi %>% filter(Indicator=="Coral.cover") %>% pull(Ind.desc))
+
   
   # sample.autotext="This synopsis was derived from indicators estimated at %s locations, across reefs and survey depths. In %s, all indicators were assessed for each those locations."  
   # sample.autotext.n1="This synopsis was derived from indicators estimated at %s locations, across reefs and survey depths. In %s, the scores for %s was not available in %s of those locations."

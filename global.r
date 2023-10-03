@@ -56,8 +56,8 @@ get_reefs<-function(selVal="Townsville/Whitsunday Management Area"){
 #            reference="Critical",
 # shelf="Inshore")
 # input=list(region_select="Zones",
-#            report_year=2021,
-#            value_select="Central",
+#            report_year=2022,
+#            value_select="Southern",
 #            reference="Baseline",
 # shelf="All")
 
@@ -69,7 +69,7 @@ get_reefs<-function(selVal="Townsville/Whitsunday Management Area"){
 # 
 # input=list(region_select="reef",
 #            report_year=2022,
-#            value_select="Gannet Cay (deep slope)")
+#            value_select="Double Cone (shallow slope)")
 # output=list()
 # input=list(region_select="TUMRA",
 #            report_year=2022,
@@ -160,8 +160,22 @@ regions=ma%>%bind_rows(nrm,tumra,zones, gbrmpa)
 scores<-read_csv("Indices.csv")%>%
   mutate(Name=case_when(Level=="reef" ~ paste0(Name," (",Depth,")"),
                         .default=Name))
+
+# ##TO FIX IN MURRAY's CODE
+scores<-scores%>%mutate(
+  Reference=case_when(Metric %in% c("critical","consequence.metric") ~ "Critical",
+                      Metric %in% c("reference") ~ "Baseline",
+                      .default=Reference),
+  Indicator=case_when(is.na(Indicator) ~ "Recovery.performance", .default=Indicator))%>%
+  group_by(Level,Name,Year,Shelf, Indicator,Metric,Reference)%>%
+  filter(row_number()==1)%>%
+  ungroup()
+
 comp<-read_csv("Composition_change.csv")%>%
   mutate(REEF= paste0(REEF," (",DEPTH.f,")"))
+
+taxaLookup<-read.csv(file="scripts/Misc/taxaLookup.csv")
+
 
 reefs<-scores%>%ungroup%>%
   filter(Level=="reef")%>%
@@ -169,7 +183,6 @@ reefs<-scores%>%ungroup%>%
   unique()%>%
   filter(!is.na(Latitude))%>%
   st_as_sf(., coords = c("Longitude", "Latitude"), crs = 4326)
-
 
 
 

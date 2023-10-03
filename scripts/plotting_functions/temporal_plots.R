@@ -28,14 +28,13 @@ ind.temp.summary<-function(reef.df){
   }else{
   p<-reef.df%>%
     mutate(Indicator=recode(Indicator, 
-                            Coral.cover="Coral cover",
-                            Macroalgae="Macroalgae cover",
-                            Performance="Recovery performance",
-                            Juvenile="Juvenile abundance",
-                            Composition="Community composition"),
+                            Coral.cover="Coral Cover",
+                            Macroalgae="Macroalgae",
+                            Recovery.performance="Recovery Performance",
+                            Juvenile.density="Juvenile Density",
+                            Community.composition="Community Composition"),
            Indicator=str_wrap(Indicator,width = 8,whitespace_only = T))%>%
-    filter(Depth %in% c(NA,"deep slope"),
-           Reference=="Baseline")%>%
+    filter(Reference=="Baseline")%>%
     ggplot(aes(group=Indicator))+
     geom_point(aes(x=Year, y=Median, color=Indicator), size=3)+
     geom_line(aes(x=Year, y=Median, color=Indicator), linetype="dashed")+
@@ -44,6 +43,7 @@ ind.temp.summary<-function(reef.df){
     # scale_shape_manual(values = unique(reef.df$Indicator)) +
     # scale_color_class()+
     ylim(0,1)+
+    # xlim(2017,2022)+
     # guides(color = FALSE)+
     theme_bw()+
     labs(shape=NULL)+

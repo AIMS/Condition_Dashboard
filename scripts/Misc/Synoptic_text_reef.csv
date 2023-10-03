@@ -7,11 +7,11 @@ Condition,Warning II,This classification indicates a second level of warning. Re
 Condition,Critical,This classification suggests reef habitat is in a degraded condition and recovery processes are compromised.,"Cl==""Critical"""
 Ecosystem engineering,Autotext1,The cover of hard corals has declined to below historical reference levels. At current levels hard corals are %s to be supporting positive reef accretion.,low.years==1
 Ecosystem engineering,Autotext2,The cover of hard corals has been below historical reference levels since %s. At current levels hard corals are %s to be supporting positive reef accretion.,low.years>1
-Ecosystem engineering,Autotext3,he cover of hard corals is %s historical reference levels. At current levels hard corals are %s to be supporting positive reef accretion.,low.year==0
+Ecosystem engineering,Autotext3,The cover of hard corals is %s historical reference levels. At current levels hard corals are %s to be supporting positive reef accretion.,low.year==0
 Trends,Autotext4,"Of %s is that during the most recent recovery period, the recovery performance of hard corals was lower than expected for a reef in this bioregion.",isTRUE(Low.pe) & !isTRUE(Low.pe.c)
 Trends,Autotext5,"Of %s is that during the most recent recovery period, the recovery performance of hard corals was lower than expected for a reef in this bioregion and declining.",isTRUE(Low.pe) & isTRUE(Low.pe.c)
 Trends,Autotext6,"In addition to hard coral cover being %s historical reference levels, the recovery performance of hard corals has matched that expected for a reef in this bioregion.",isFALSE(Low.pe) & isFALSE(Low.hc) & !isTRUE(Low.pe.c)
-Trends,Autotext7,"In addition to hard coral cover being %s historical reference levels, the recovery performance of hard corals has attainded that expected for a reef in this bioregion, but has shown a recent decline.",isFALSE(Low.pe) & isFALSE(Low.hc) & isTRUE(Low.pe.c)
+Trends,Autotext7,"In addition to hard coral cover being %s historical reference levels, the recovery performance of hard corals has attained that expected for a reef in this bioregion, but has shown a recent decline.",isFALSE(Low.pe) & isFALSE(Low.hc) & isTRUE(Low.pe.c)
 Trends,Autotext8,"Encouragingly, during the most recent recovery period coral cover increased at a rate expected for a reef in this bioregion.",isFALSE(Low.pe) & isTRUE(Low.hc) & !isTRUE(Low.pe.c)
 Trends,Autotext9,An assessment of the rate of recovery of hard coral cover for this reef could not be made.,is.na(Low.pe)
 Processes,Autotext10,The density of juvenile corals was %s historical reference levels.,
@@ -26,8 +26,8 @@ Processes,Autotext17,"In addition to the low cover of hard corals, the compositi
 Processes,Autotext18,"Although the cover of hard corals is low, there is no evidence of a substantial change in the composition of coral communities.",isFALSE(Low.co) & isFALSE(Low.hc)
 Processes,Autotext19,"However, the taxonomic composition of coral communities are similar to those more recently observed, suggesting a persistent shift.",isTRUE(Low.co) & isFALSE(Low.co.c)
 Processes,Autotext20,"The taxonomic composition of coral communities are also distinct from those more recently observed, suggesting ongoing changes in community composition.",isTRUE(Low.co) & isTRUE(Low.co.c)
-Processes,Autotext21,Most infulential in observed changes in coral community composition have been increases in the relative abundance of %s and decreases in %s.,length(inc.6)>0 & length(dec.6>0
-Processes,Autotext22,Most infulential in observed changes in coral community composition have been increases in the relative abundance of %s.,length(dec)==0
-Processes,Autotext23,Most infulential in observed changes in coral community composition have been decreases in the relative abundance of %s.,length(inc)==0
-Disclaimer,sample.autotext,This synopsis reflects the assesement of indicators relative to their historical baselines.,isTRUE(CC&C&J&P&M)
-Disclaimer,sample.autotext.n1,A clasification could not be made for this reef as estimates for all five indicators were not available.,isFALSE(CC&C&J&P&M)
+Processes,Autotext21,Most influential in observed changes in coral community composition have been increases in the relative abundance of %s and decreases in %s.,length(inc.6)>0 & length(dec.6>0
+Processes,Autotext22,Most influential in observed changes in coral community composition have been increases in the relative abundance of %s.,length(dec)==0
+Processes,Autotext23,Most influential in observed changes in coral community composition have been decreases in the relative abundance of %s.,length(inc)==0
+Disclaimer,sample.autotext,This synopsis reflects the assessment of indicators relative to their historical baselines.,isTRUE(CC&C&J&P&M)
+Disclaimer,sample.autotext.n1,A classification could not be made for this reef as estimates for all five indicators were not available.,isFALSE(CC&C&J&P&M)

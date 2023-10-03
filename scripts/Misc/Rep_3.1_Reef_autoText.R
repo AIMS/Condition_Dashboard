@@ -38,14 +38,13 @@ format_html_list <- function(char, ordered = FALSE){
 }
 
 
-sum.reef.tx<-function(i.df, y){
+sum.reef.tx<-function(i.df, y, comp.d=comp, tL=taxaLookup){
   require(tidyverse)
   source("scripts/Misc/HighLevel_Classification.R")
 
   
   a.txt<-read_csv(file = "scripts/Misc/Synoptic_text_reef.csv")
-  taxaLookup<-read.csv(file="scripts/Misc/taxaLookup.csv")
-  
+
   #************************************
   # Overall classification of condition
   #************************************
@@ -74,18 +73,28 @@ sum.reef.tx<-function(i.df, y){
   #   filter(Name=="Double Cone" & Depth=="shallow slope")
   # 
   # taxaLookup<-read.csv(file="taxaLookup.csv")
+  
   # 
-  # c.df<-read.csv(file="Composition_change.csv") %>%
-  #   filter(REEF=="Double Cone" & DEPTH.f=="shallow slope") %>%
-  #   rename(Name=REEF,Depth=DEPTH.f, Year=REPORT_YEAR) %>%
-  #   group_by(Name,Depth,Year,k) %>%
-  #   arrange(desc(abs(meanDiff))) %>%
-  #   slice(1:3) %>%
-  #   ungroup %>%
-  #   mutate(Change=ifelse(meanDiff>0,"Increase","Decrease")) %>%
-  #   left_join(taxaLookup)
-  # 
-  # y=2022
+  s=i.df%>%pull(Shelf)%>%unique()
+  this.reef<-i.df%>%
+    filter(Year==y, Indicator=="Community.composition", Reference=="Baseline", Shelf %in% s)%>%pull(Name)
+
+  c.df<-comp.d%>%
+    filter(REEF == this.reef, REPORT_YEAR==y, k==6)
+
+  c.df<-c.df%>%
+    rename(Name=REEF,Depth=DEPTH.f, Year=REPORT_YEAR) %>%
+    group_by(Name,Depth,Year,k) %>%
+    arrange(desc(abs(meanDiff))) %>%
+    slice(1:3) %>%
+    ungroup %>%
+    mutate(Change=ifelse(meanDiff>0,"Increase","Decrease"))
+  
+  c.df<-c.df%>%
+    left_join(tL)
+    
+    
+
   
   #***********************
   # Hard coral cover #####
@@ -236,7 +245,7 @@ sum.reef.tx<-function(i.df, y){
     pull(St)
   
   
-  Conseq.ma<-ifelse(isFALSE(Low.m.c), "likely","unlikely")
+  Conseq.ma<-ifelse(isFALSE(Low.m.c), "unlikely","likely")
   
   # Indi.desc.m<-as.character(Indi %>% 
   #                             filter(Indicator=="Macroalgae") %>% 
@@ -353,7 +362,7 @@ sum.reef.tx<-function(i.df, y){
                                 ifelse(isTRUE(Low.co) & isTRUE(Low.hc)& low.years.co>0,
                                        sprintf(a.txt%>%filter(Variable=="Autotext17")%>%pull(Description),
                                                start.run.co),
-                                               ifelse(isFALSE(Low.co) & isFALSE(Low.hc),
+                                               ifelse(isFALSE(Low.co) & Low.hc,
                                                       a.txt%>%filter(Variable=="Autotext18")%>%pull(Description),"")
                                 )
                          )
@@ -405,19 +414,20 @@ sum.reef.tx<-function(i.df, y){
   # autotext23<-"Most infulential in observed changes in coral community composition have been decreases in the relative abundance of %s."
   # 
   
-  sent.taxa=ifelse(length(inc.6)>0 & length(dec.6>0),
-                   sprintf(a.txt%>%filter(Variable=="Autotext21")%>%pull(Description),
-                           inc,
-                           dec),
-                  ifelse(length(dec)==0,
-                         sprintf(a.txt%>%filter(Variable=="Autotext22")%>%pull(Description),
-                                 inc,
-                                 sprintf(a.txt%>%filter(Variable=="Autotext23")%>%pull(Description),
-                                         dec)
-                         )
-                  )
-  )
-                  
+  sent.taxa=case_when(Low.co ~ "",
+                      (length(inc.6)>0 & length(dec.6>0) & Low.co) ~ sprintf(a.txt%>%filter(Variable=="Autotext21")%>%pull(Description),
+                                                                    inc,
+                                                                    dec),
+                      (length(dec)==0 & Low.co ) ~ sprintf(a.txt%>%filter(Variable=="Autotext22")%>%pull(Description),
+                                                 inc),
+                      (length(dec) !=0 & Low.co ) ~ sprintf(a.txt%>%filter(Variable=="Autotext23")%>%pull(Description),
+                                                         dec),
+                      .default= "")
+  
+  if(sent.taxa==""){sent.taxa=NULL}
+  
+
+          
   
   #********************************************************************************************
   # Sampling summary lead in for context and to reduce repetition within indicator sentences####

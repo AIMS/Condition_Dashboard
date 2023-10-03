@@ -45,13 +45,25 @@ server <- function(session, input, output) {
       if(dim(i.df)[1]==0){
         dat.temp<-data.frame()
       }else{
-        dat.temp<-i.df%>%
-          filter(Shelf==input$shelf)%>%
-          mutate(Classification=case_when(
-            Lower > 0.5 ~ "Above",
-            Upper < 0.5 ~ "Below",
-            is.na(Lower) ~ NA,
-            .default="Within"))
+       
+        if (input$region_select == "reef"){
+          dat.temp<-i.df%>%
+            mutate(Classification=case_when(
+              Lower > 0.5 ~ "Above",
+              Upper < 0.5 ~ "Below",
+              is.na(Lower) ~ NA,
+              .default="Within"))
+          
+        }else{
+          dat.temp<-i.df%>%
+            filter(Shelf==input$shelf)%>%
+            mutate(Classification=case_when(
+              Lower > 0.5 ~ "Above",
+              Upper < 0.5 ~ "Below",
+              is.na(Lower) ~ NA,
+              .default="Within"))
+        }
+ 
       }
       
       this.region<-regions%>%

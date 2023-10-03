@@ -59,11 +59,11 @@ radial.plot.summary<-function(dat,ref){
       ungroup%>%
       filter(Reference==ref)%>%
       mutate(Indicator=recode(Indicator, 
-             Coral.cover="Coral cover",
-             Macroalgae="Macroalgae cover",
-             Recovery.performance="Recovery performance",
-             Juvenile.density="Juvenile abundance",
-             Community.composition="Community composition"))%>%
+                              Coral.cover="Coral Cover",
+                              Macroalgae="Macroalgae",
+                              Recovery.performance="Recovery Performance",
+                              Juvenile.density="Juvenile Density",
+                              Community.composition="Community Composition"))%>%
       # mutate(Indicator=str_replace(Indicator, "[.]", " "))%>%
       ggplot()+
       geom_col(

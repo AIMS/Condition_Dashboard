@@ -39,7 +39,7 @@ ui <- bootstrapPage(
                                         plotOutput("region.radial.plot", height="350px", width="100%"),
                                         # span(tags$i(h6("Error bars represent the 90% credible intervals")), style="color:#045a8d"),
                                         sliderInput("report_year", "Select Report year",
-                                                    min=2007, max=2023, value=2022),
+                                                    min=2007, max=2022, value=2022),
                                         # animate=animationOptions(interval = 3000, loop = FALSE)),
                                         
                                         
@@ -60,7 +60,7 @@ ui <- bootstrapPage(
                                                      checkbox = FALSE,
                                                      inline = T),
                                         pickerInput("region_select", "Region:",   
-                                                    choices = c("GBR","GBRMPA.MA", "ZONE", "NRM", "TUMRA", "reef"),
+                                                    choices = c("GBR", "ZONE", "NRM", "TUMRA", "reef"),
                                                     selected = "ZONE",
                                                     multiple = FALSE),
                                         
