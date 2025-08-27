@@ -1,6 +1,8 @@
-old_data_files/
+old_data_files/*.*
 Indices.csv
 Composition_change.csv
 scores.Rdata
 .Rhistory
 rsconnect/
+.Rproj.user
+.json

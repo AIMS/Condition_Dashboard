@@ -66,6 +66,11 @@ get_reefs<-function(selVal="Townsville/Whitsunday Management Area"){
 # report_year=2021,
 # value_select="Townsville/Whitsunday Management Area",
 # shelf="All")
+
+# input=list(region_select="GBR",
+# report_year=2023,
+# value_select="GBRMP",
+# shelf="All")
 # 
 # input=list(region_select="reef",
 #            report_year=2022,
@@ -172,9 +177,13 @@ scores<-scores%>%mutate(
   ungroup()
 
 comp<-read_csv("Composition_change.csv")%>%
-  mutate(REEF= paste0(REEF," (",DEPTH.f,")"))
+  mutate(REEF.d=str_replace(REEF.d, "deep slope", "(deep slope)"),
+         REEF.d=str_replace(REEF.d, "shallow slope", "(shallow slope)"))
+# %>%
+#   mutate(REEF= paste0(REEF," (",DEPTH.f,")"))
 
 taxaLookup<-read.csv(file="scripts/Misc/taxaLookup.csv")
+  
 
 
 reefs<-scores%>%ungroup%>%

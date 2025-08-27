@@ -1,0 +1,31 @@
+{
+    "Aggregation": "Spatial aggregation of Indicator scores",
+    "Name": "Name of the spatial aggregation feature (e.g., reef name, Bioregion number, etc)",
+    "Shelf": "Shelf habitat within the spatial aggregation (e.g., Inshore, Offshore, All)",
+    "Year": "Report year for reef condition assessments. This accounts for surveys across summer within financial year cycles",
+    "Scores": {
+        "Description": "Indicator score dataframe",
+        "Field.description": {
+            "Indicator": "Coral Reef Condition Indicator evaluated",
+            "Metric": "Metric used to calculate the indicator score",
+            "Reference": "Threhsold reference used to calculate the indicator score (i.e., Critial, Baseline)",
+            "Median": "Median of the indicator score value for a given Aggregation, Shelf and Report Year",
+            "Lower": "Lower end of credible intervals with a 90% probability",
+            "Upper": "Upper end of the credible intervals with a 90% probability",
+            "tn.reef": "Total number of reefs assessed within a given Aggregation, Shelf and Report Year",
+            "n.below": "Number of reefs showing indicator score values below a given Refence value and Indicator"
+        }
+    },
+    "Comm.Change": {
+        "Description": "Observed changes in community composition of Hard and Soft corals",
+        "Field.description": {
+            "Taxon": "Taxonomic identification",
+            "meanDiff": "Mean difference in proportional cover (0-1) for a given taxa in a given Aggregation, Shelf and Year, compared to the historical reference",
+            "varDiff": "Variance of the Difference obeserved in proportional cover",
+            "k": "Number of neightbours used to estimated outliers in community composition"
+        }
+    },
+    "Description": "Auto-generated text to assisst in the interpretation of indicator scores",
+    "Disclaimer": "Additional information relevant to assist in the interpretation of the indicator scores and descriptive text"
+}
+

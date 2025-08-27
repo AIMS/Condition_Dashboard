@@ -47,7 +47,7 @@ sum.tx.r<-function(i.df, y){
   #************************************
   # Standardise definitions, context and wording for Autotext ###########
   #************************************
-  
+
   Indi<-i.df %>% 
     dplyr::select(Indicator) %>% 
     unique %>%
@@ -91,7 +91,7 @@ sum.tx.r<-function(i.df, y){
   # i.df<-indices%>%
   #   filter(Name=="Burdekin" & Shelf=="Offshore")
   
- 
+  
   
   #####************************************************************************ 
   ##Need a lookup to match Composition_change Name (which are reefs) to Regions
@@ -129,17 +129,23 @@ sum.tx.r<-function(i.df, y){
     droplevels()
   if(is.na(data.hc.c$Median)){
     sent.hc="Coral cover data is not available."
-    }else{
+    Low.hc=NA
+  }else{
     
     start.run<-as.character(data %>% 
                               filter(runID.l==max(runID.l)) %>%
                               summarise(runStart=first(Year)))
     
     low.years<-nrow(data %>% filter(runID.l==max(runID.l) & Low=='1'))
-    prev.low<-data %>%
-      filter(Year<y,Low==1)%>%
-      summarise(prev.low=min(Year))%>%
-      pull(prev.low)
+    
+    if (y == min(data$Year)){
+      prev.low=NA}else{
+        prev.low<-data %>%
+          filter(Year<y,Low==1)%>%
+          summarise(prev.low=min(Year))%>%
+          pull(prev.low)
+      }
+    
     
     data.hc<-data %>%
       filter(Year==y)
@@ -187,11 +193,11 @@ sum.tx.r<-function(i.df, y){
                      #y,
                      #Indi.desc,
                      n.conseq),
-             ifelse((isTRUE(Low.hc) & as.numeric(n.conseq)==0 & low.years==1),
-                    sprintf(a.txt%>%filter(Variable=="Autotext2")%>%pull(Description),
+             ifelse((isTRUE(Low.hc) & as.numeric(n.conseq)==0),
+                    sprintf(a.txt%>%filter(Variable=="Autotext2")%>%pull(Description)
                             #y,
                             #Indi.desc,
-                            ),
+                    ),
                     ifelse((isTRUE(Low.hc) & as.numeric(n.conseq) >0 & low.years>1),
                            sprintf(a.txt%>%filter(Variable=="Autotext3")%>%pull(Description),
                                    #Indi.desc,
@@ -277,8 +283,8 @@ sum.tx.r<-function(i.df, y){
   
   sent.pe.n=
     sprintf(a.txt%>%filter(Variable=="Autotext9")%>%pull(Description),
-                                 n.reef.pe,
-                                 n.reef.pe.low)
+            n.reef.pe,
+            n.reef.pe.low)
   sent.pe.c=
     ifelse(n.reef.pe==n.reef.pe.c.low,
            a.txt%>%filter(Variable=="Autotext10")%>%unique()%>%pull(Description),
@@ -303,11 +309,11 @@ sum.tx.r<-function(i.df, y){
                      ifelse(Lower>0.5, "above", "similar to"))) %>%
     pull(St)
   
-   add.conseq<-ifelse(isFALSE(Low.hc) & isFALSE(Low.pe),"Detracting","Further detracting")
+  add.conseq<-ifelse(isFALSE(Low.hc) & isFALSE(Low.pe),"Detracting","Further detracting")
   
-   n.reef.j<-as.character(data.j %>%  pull(tn.reefs))
-   n.reef.j.low<-as.character(data.j %>%  pull(n.below))
-   
+  n.reef.j<-as.character(data.j %>%  pull(tn.reefs))
+  n.reef.j.low<-as.character(data.j %>%  pull(n.below))
+  
   #### Juveniles relative to reference
   # at or above all reefs
   # Autotext12="The median density of juvenile corals was %s historical reference levels, suggesting ongoing recovery potential."
@@ -328,7 +334,8 @@ sum.tx.r<-function(i.df, y){
                          sprintf(a.txt%>%filter(Variable=="Autotext14")%>%pull(Description),
                                  add.conseq,
                                  n.reef.j.low,
-                                 n.reef.j))
+                                 n.reef.j), 
+                         "The density of juveline corals is above the historical baseline values")
            )
     )
   if(is.na(Low.j)){sent.j=NULL} 
@@ -369,12 +376,12 @@ sum.tx.r<-function(i.df, y){
                                        sprintf(a.txt%>%filter(Variable=="Autotext17")%>%pull(Description),
                                                Concern.j.high,
                                                n.reef.j.c.low)
-                                       )
                                 )
+                         )
                   )
            )
     )
-        
+  
   if(is.na(Low.j.c)){sent.j.c=NULL}   
   
   #********************##
@@ -410,31 +417,31 @@ sum.tx.r<-function(i.df, y){
   #MA above
   Autotext19="%s the representation of macroalgae species within the benthic algal communities was above historical reference levels."
   
- 
+  
   sent.m=
     ifelse(isFALSE(Low.m),
            sprintf(a.txt%>%filter(Variable=="Autotext18")%>%pull(Description),
                    State.ma),
-                 sprintf(a.txt%>%filter(Variable=="Autotext15")%>%unique()%>%pull(Description),
-                          Indi.desc.j,
-                          Indi.desc.ma))
-                  
-#
-#  Autotext20="At current levels macroalgae are unlikley to be limiting coral community resilience on any reefs monitored."
-#  Autotext21="%s, current levels macroalgae are likley to be limiting coral community resilience at all reefs monitored."
-# Autotext22="%s, current levels macroalgae are likley to be limiting coral community resilience at %s reefs monitored"             
-
-sent.m.c=
-   ifelse(n.reef.m.c.low==0,
-          a.txt%>%filter(Variable=="Autotext20")%>%pull(Description),
-          ifelse(n.reef.m.c.low==n.reef.m,
-                 sprintf(a.txt%>%filter(Variable=="Autotext21")%>%pull(Description),
-                         Concern.ma.c),
-                 sprintf(a.txt%>%filter(Variable=="Autotext22")%>%pull(Description),
-                         Concern.ma.c,
-                         n.reef.m.c.low)
-          )
-   )
+           sprintf(a.txt%>%filter(Variable=="Autotext15")%>%unique()%>%pull(Description),
+                   Indi.desc.j,
+                   Indi.desc.ma))
+  
+  #
+  #  Autotext20="At current levels macroalgae are unlikley to be limiting coral community resilience on any reefs monitored."
+  #  Autotext21="%s, current levels macroalgae are likley to be limiting coral community resilience at all reefs monitored."
+  # Autotext22="%s, current levels macroalgae are likley to be limiting coral community resilience at %s reefs monitored"             
+  
+  sent.m.c=
+    ifelse(n.reef.m.c.low==0,
+           a.txt%>%filter(Variable=="Autotext20")%>%pull(Description),
+           ifelse(n.reef.m.c.low==n.reef.m,
+                  sprintf(a.txt%>%filter(Variable=="Autotext21")%>%pull(Description),
+                          Concern.ma.c),
+                  sprintf(a.txt%>%filter(Variable=="Autotext22")%>%pull(Description),
+                          Concern.ma.c,
+                          n.reef.m.c.low)
+           )
+    )
   
   
   #********************##
@@ -558,7 +565,7 @@ sent.m.c=
   not.pe=as.numeric(n.reefs)-as.numeric(n.reef.pe)
   not.ma=as.numeric(n.reefs)-as.numeric(n.reef.m)
   
-
+  
   
   # sample.autotext="This synopsis was derived from indicators estimated at %s locations, across reefs and survey depths. In %s, all indicators were assessed for each those locations."  
   # sample.autotext.n1="This synopsis was derived from indicators estimated at %s locations, across reefs and survey depths. In %s, the scores for %s was not available in %s of those locations."
@@ -609,7 +616,7 @@ sent.m.c=
                                                              Indi.desc.j,
                                                              Indi.desc.ma,
                                                              not.j,
-                                                             not,ma),
+                                                             not.ma),
                                                      ifelse(not.j>0 & not.pe>0 & max(not.comp,not.ma)==0,
                                                             sprintf(a.txt%>%filter(Variable=="sample.autotext.n2")%>%unique()%>%pull(Description),
                                                                     n.reefs,
@@ -625,7 +632,7 @@ sent.m.c=
                                                                            Indi.desc.pe,
                                                                            Indi.desc.ma,
                                                                            not.pe,
-                                                                           not,ma),
+                                                                           not.ma),
                                                                    ifelse(not.pe>0 & not.comp>0 & max(not.ma,not.j)==0,
                                                                           sprintf(a.txt%>%filter(Variable=="sample.autotext.n2")%>%unique()%>%pull(Description),
                                                                                   n.reefs,
@@ -681,7 +688,8 @@ sent.m.c=
                                                                                                                      Indi.desc.j,
                                                                                                                      not.pe,
                                                                                                                      not.comp,
-                                                                                                                     not.j)
+                                                                                                                     not.j),
+                                                                                                             ""
                                                                                                       )
                                                                                                )
                                                                                         )

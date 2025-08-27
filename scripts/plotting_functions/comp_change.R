@@ -2,7 +2,8 @@
 comp_plot<-function(comp, i.df.r, y, s){
   if(s=="All"){s=c("Inshore","Offshore")}
   comp.d<-comp%>%
-    filter(k==6,REPORT_YEAR==y, REEF %in% (i.df.r%>%filter(Year==y, Indicator=="Community.composition", Reference=="Baseline",Median<0.5, Shelf %in% s)%>%pull(Name)))%>%
+    filter(k==6,REPORT_YEAR==y, REEF.d %in% (i.df.r%>%pull(Name)%>%unique()))%>%
+           # REEF %in% (i.df.r%>%filter(Year==y, Indicator=="Community.composition", Reference=="Baseline",Median<0.5, Shelf %in% s)%>%pull(Name)))%>%
     group_by(COMP_2021_DESCRIPTION)%>%
     summarise(diff=median(meanDiff), se=ifelse(is.na(sd(meanDiff)/sqrt(length(meanDiff))), 0,sd(meanDiff)/sqrt(length(meanDiff)))) %>%
     mutate(taxa=factor(COMP_2021_DESCRIPTION, levels=COMP_2021_DESCRIPTION[order(diff)]),

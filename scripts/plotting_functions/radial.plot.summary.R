@@ -46,13 +46,13 @@ radial.plot.summary<-function(dat,ref){
     #   group_by(Name,Year, Indicator, Classification)%>%
     #   summarise(Score=mean(Score, na.rm = T))%>%
     #   ungroup()%>%
-    #   # mutate(Classification=case_when(
-    #   #   Score > 0.5 ~ "Good",
-    #   #   Score > 0.4 & Score <= 0.5 ~ "Moderate",
-    #   #   Score <= 0.4 & Score > 0.2 ~ "Poor",
-    #   #   # Score < 0.2 ~ "Very Poor",
-    #   #   TRUE ~ "Very Poor")
-    #   # )%>%
+    #   mutate(Classification=case_when(
+    #     Score > 0.5 ~ "Good",
+    #     Score > 0.4 & Score <= 0.5 ~ "Moderate",
+    #     Score <= 0.4 & Score > 0.2 ~ "Poor",
+    #     # Score < 0.2 ~ "Very Poor",
+    #     TRUE ~ "Very Poor")
+    #   )%>%
     #   mutate(Classification=factor(Classification, levels=c("Very Poor","Poor","Moderate","Good")))
     
     p.eg<-dat%>%
