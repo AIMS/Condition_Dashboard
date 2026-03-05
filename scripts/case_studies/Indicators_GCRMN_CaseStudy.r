@@ -23,12 +23,13 @@ library(ggplot2)
 #***********
 #Indicator data for GCRMN Case Study
 load("indicators_all.Rdata")
+# indicators_all<-read.csv("indicator_scores_revised_11092025.csv") |> mutate(Level="reef")
 glimpse(indicators_all)
 
 #Look for examples where 3 out of the 4 main indicators are below 0.5
 concern_any3 <- indicators_all |>
         filter(
-            Aggregation == "reef",
+            Level == "reef",
             Reference == "Baseline",
             Indicator %in% c("Juvenile.density", "Macroalgae", "Recovery.performance", "Coral.cover"),
             Upper < 0.5,

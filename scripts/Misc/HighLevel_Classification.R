@@ -3,7 +3,7 @@
 
 
 
-Cond.Class<-function(df){
+Cond.Class<-function(df,conf){
   
 
   
@@ -52,10 +52,10 @@ Cond.Class<-function(df){
       # rename(Score=Median)%>%
       mutate(
         crit=case_when(
-          ((Indicator %in% c("Community.composition","Macroalgae","Juvenile.density", "Coral.cover")) &
-          Upper<=0.5) ~T, ##at or Below threshold for most of the indicators
-          ((Indicator == "Recovery.performance") &
-             Upper<0.5) ~ T,##[TODO:REview this] Below threshold for Recovery
+          ((Indicator %in% c("Macroalgae","Juvenile.density", "Coral.cover")) &
+          p_below_0.5>= conf) ~T, ##at or Below threshold for most of the indicators
+          ((Indicator %in% c("Community.composition","Recovery.performance")) &
+             p_below_0.5>= conf) ~ T,##[TODO:REview this] Below threshold for Recovery
           is.na(Median) ~NA,
           .default=F
         ),

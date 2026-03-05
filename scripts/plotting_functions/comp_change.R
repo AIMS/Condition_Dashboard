@@ -5,16 +5,18 @@ comp_plot<-function(comp, i.df.r, y, s){
     filter(k==6,REPORT_YEAR==y, REEF.d %in% (i.df.r%>%pull(Name)%>%unique()))%>%
            # REEF %in% (i.df.r%>%filter(Year==y, Indicator=="Community.composition", Reference=="Baseline",Median<0.5, Shelf %in% s)%>%pull(Name)))%>%
     group_by(COMP_2021_DESCRIPTION)%>%
-    summarise(diff=median(meanDiff), se=ifelse(is.na(sd(meanDiff)/sqrt(length(meanDiff))), 0,sd(meanDiff)/sqrt(length(meanDiff)))) %>%
-    mutate(taxa=factor(COMP_2021_DESCRIPTION, levels=COMP_2021_DESCRIPTION[order(diff)]),
-           c=case_when(diff<0 ~ "Loss",
+    summarise(meanDiff=mean(meanDiff), varDiff=mean(varDiff, na.rm=TRUE)) |> 
+    
+    # summarise(meanDiff=median(meanDiff), se=ifelse(is.na(sd(meanDiff)/sqrt(length(meanDiff))), 0,sd(meanDiff)/sqrt(length(meanDiff)))) %>%
+    mutate(taxa=factor(COMP_2021_DESCRIPTION, levels=COMP_2021_DESCRIPTION[order(meanDiff)]),
+           c=case_when(meanDiff<0 ~ "Loss",
                        .default="Gain"),
-           lower=case_when(c=="Loss" ~ diff+se,
-                           .default=diff-se),
-           upper=case_when(c=="Loss" ~ diff-se,
-                           .default=diff+se)
+           lower=case_when(c=="Loss" ~ meanDiff+varDiff,
+                           .default=meanDiff-varDiff),
+           upper=case_when(c=="Loss" ~ meanDiff-varDiff,
+                           .default=meanDiff+varDiff)
     )%>%
-    arrange(-abs(diff))%>%
+    arrange(-abs(meanDiff))%>%
     head()%>%
     droplevels()
   
@@ -34,10 +36,10 @@ comp_plot<-function(comp, i.df.r, y, s){
   }else{
     comp.d<-comp.d%>%
       ggplot()+
-      geom_bar(aes(x=taxa, y=diff*100, fill=c), stat="identity")+
+      geom_bar(aes(x=taxa, y=meanDiff*100, fill=c), stat="identity")+
       geom_errorbar(aes(x=taxa,ymin=lower*100, ymax=upper*100), width=0.2)+
       scale_x_discrete(labels = function(x) 
-        stringr::str_wrap(x, width = 10))+
+        stringr::str_wrap(x, width = 20))+
       coord_flip()+
       labs(x="Top taxa that changed", y=sprintf("Change in cover from %s reefs\nwhere composition has changed\n(%%, mean +/- se)", nreefs))+
       scale_fill_manual(values=c("blue","red"))+

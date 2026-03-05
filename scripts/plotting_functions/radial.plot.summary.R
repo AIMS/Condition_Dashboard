@@ -60,9 +60,9 @@ radial.plot.summary<-function(dat,ref){
       filter(Reference==ref)%>%
       mutate(Indicator=recode(Indicator, 
                               Coral.cover="Coral Cover",
-                              Macroalgae="Macroalgae",
-                              Recovery.performance="Recovery Performance",
-                              Juvenile.density="Juvenile Density",
+                              Macroalgae="Macroalgal Prevalence",
+                              Recovery.performance="Recovery Rate",
+                              Juvenile.density="Coral Juvenile Density",
                               Community.composition="Community Composition"))%>%
       # mutate(Indicator=str_replace(Indicator, "[.]", " "))%>%
       ggplot()+
@@ -180,7 +180,7 @@ radial.plot.summary<-function(dat,ref){
         # axis.ticks = element_blank(),
         # axis.text.y = element_blank(),
         # Use gray text for the region names
-        axis.text.x = element_text(color = "gray20", size = 12, ),
+        axis.text.x = element_text(color = "gray20", size = 12 ),
         # Move the legend to the bottom
         legend.position = 'none',
       )
