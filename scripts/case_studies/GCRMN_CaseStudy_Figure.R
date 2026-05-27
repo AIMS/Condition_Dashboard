@@ -74,8 +74,14 @@ scores <- indices |>
   filter(Level == "reef") |>
   mutate(
     fYEAR = Year,
-    Year = as.numeric(as.character(Year))
-  )
+      Reference=case_when(
+           (Reference=="Combined") & 
+             (Indicator %in% c("Community.composition")) ~ "Combined_adjusted",
+           .default=Reference),
+    Year = as.numeric(as.character(Year)),
+         Median=ifelse(is.na(Median), 0.5, Median),
+         Upper=ifelse(is.na(Upper), 0.5, Upper),
+         Lower=ifelse(is.na(Lower), 0.5, Lower))
 
 # Plot styling ----
 scale_fill_class.c <- function(...) {
