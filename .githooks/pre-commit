@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+set -eu
+
+# Blocks newly added/modified staged files larger than MAX_FILE_MB (default: 50 MB).
+MAX_FILE_MB="${MAX_FILE_MB:-50}"
+MAX_FILE_BYTES=$((MAX_FILE_MB * 1024 * 1024))
+
+OVERSIZED_FILES=""
+
+while IFS= read -r FILE_PATH; do
+  [ -z "$FILE_PATH" ] && continue
+
+  # Read size from the staged blob in the index to avoid working-tree mismatches.
+  FILE_SIZE_BYTES=$(git cat-file -s ":$FILE_PATH" 2>/dev/null || echo 0)
+
+  if [ "$FILE_SIZE_BYTES" -gt "$MAX_FILE_BYTES" ]; then
+    FILE_SIZE_MB=$(awk "BEGIN { printf \"%.2f\", $FILE_SIZE_BYTES / 1024 / 1024 }")
+    OVERSIZED_FILES="$OVERSIZED_FILES\n - $FILE_PATH ($FILE_SIZE_MB MB)"
+  fi
+done <<EOF
+$(git diff --cached --name-only --diff-filter=AM)
+EOF
+
+if [ -n "$OVERSIZED_FILES" ]; then
+  echo ""
+  echo "Commit blocked: staged file(s) exceed ${MAX_FILE_MB} MB."
+  printf "%b\n" "$OVERSIZED_FILES"
+  echo ""
+  echo "Recommended actions:"
+  echo "  1. Add the file pattern to .gitignore if it is generated or local data."
+  echo "  2. Use Git LFS for large assets that must be versioned."
+  echo "  3. Unstage file(s) and commit without them: git restore --staged <path>."
+  echo ""
+  exit 1
+fi
+
+exit 0
