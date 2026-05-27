@@ -37,7 +37,7 @@ cfg <- list(
   version = "1.0.0",
   run_date = as.character(Sys.Date()),
   conf_thsld = 0.8,
-  ref = "Combined",
+  ref = "Combined_adjusted",
   indices_paths = "data/indices.RData",
   hard_coral_path = "data/GCRMN_CaseStudy_HC_reefs.RData",
   output_dir = "Fig",
