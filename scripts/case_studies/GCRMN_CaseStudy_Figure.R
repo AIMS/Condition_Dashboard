@@ -251,4 +251,3 @@ message("Export complete: ", file.path(cfg$output_dir, paste0(cfg$output_basenam
 message("Export complete: ", file.path(cfg$output_dir, paste0(cfg$output_basename, ".svg")
 
 
-View(indices)
