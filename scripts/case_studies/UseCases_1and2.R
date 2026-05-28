@@ -12,12 +12,12 @@ library(ggtext)
 load("indices.RData")
 conf_thsld<-0.8
 scores<-indices |> filter(Level=="reef") |> 
+  filter(!Reference == "Combined") |> #This is the straight average of the baseline and critical scores. Removed to avoid confusion, since we're not using it
+  #since the original code probably uses the term 'Combined' throughout, set the correct Reference level to be called 'Combined'
+  mutate(Reference=ifelse(Reference=="Combined_adjusted", "Combined", Reference)) |>
   mutate(fYEAR=Year, Year=as.numeric(as.character(Year)),
          Reference=case_when(
-           (Reference=="Combined") & 
-             (Indicator %in% c("Community.composition", "Recovery.performance")) ~ "old_combined",
-           (Reference=="Baseline") &
-             (Indicator %in% c("Community.composition", "Recovery.performance")) ~ "Combined",
+           (Reference=="Baseline") & (Indicator == "Community.composition") ~ "Combined",
            .default=Reference),
          Median=ifelse(is.na(Median), 0.5, Median),
          Upper=ifelse(is.na(Upper), 0.5, Upper),
@@ -59,7 +59,8 @@ df1<-scores |>
     is.na(Lower) ~ NA,
     .default="Within"),
     Shelf="Offshore", Depth="Deep slope")
-Class.df1<-Cond.Class(df1, conf_thsld)
+#Class.df1<-Cond.Class(df1, conf_thsld)
+Class.df1<-Cond.Class.D(df1, conf_thsld)
 
 f1.cond<-radial.plot.summary( df1, ref)+
   scale_fill_class.c()+
@@ -71,7 +72,7 @@ f1.cond<-radial.plot.summary( df1, ref)+
         axis.ticks.y = element_blank(),
         axis.title.y= element_blank(),
         plot.title = element_textbox_simple(
-          fill = "#EDD746FF", # Background color of the textbox
+          fill = "#0F85A0FF", # Background color of the textbox
           color = "white",    # Text color
           box.color = NULL, # Border color of the textbox
           r = unit(8, "pt"),   # Radius for rounded corners 
@@ -117,8 +118,9 @@ f1.comp
 
 f1<-plot_grid(f1.temp, plot_grid(f1.cond, f1.comp, nrow=2, labels=c("B", "C")), rel_widths = c(1.2, 0.8),labels=c("A"))
 f1
-ggsave(plot=f1, path = "scripts/case_studies/",filename = "Fig1.png",width = 35, height = 20,units = "cm")
-ggsave(plot=f1, path = "scripts/case_studies/",filename = "Fig1.svg",width = 35, height = 20,units = "cm")
+#ggsave(plot=f1, path = "scripts/case_studies/",filename = "Fig1.png",width = 35, height = 20,units = "cm")
+ggsave(plot=f1, path = "scripts/case_studies/",filename = "Fig1_DendroD.png",width = 35, height = 20,units = "cm")
+#ggsave(plot=f1, path = "scripts/case_studies/",filename = "Fig1.svg",width = 35, height = 20,units = "cm")
 
 
 
@@ -132,7 +134,7 @@ f2a.temp<-GCRMN_CaseStudy_HC_reefs |> filter(domain_name=="SNAPPER ISLAND") |>
                lineend = "butt", 
                linejoin = "mitre",
                linewidth = 5, 
-               colour = "#EC7014",
+               colour = "#ED8B00FF",
                arrow = arrow(length = unit(0.5, "cm")))+
   scale_y_continuous(labels = scales::percent)+
   scale_color_manual(values = c("grey", "black"))+
@@ -151,7 +153,8 @@ df2b<-scores |>
     is.na(Lower) ~ NA,
     .default="Within"))
 
-Class.df2b<-Cond.Class(df2b |> 
+Class.df2b<-#Cond.Class(df2b |> 
+             Cond.Class.D(df2b |>
                          filter(Reference==ref) |>
                          mutate(across(c(Median, Lower, Upper), ~case_when(is.na(.x) ~ 0.5, .default=.x))),
                        conf=conf_thsld)
@@ -213,8 +216,10 @@ df2d<-scores |> filter(Level=="reef", Year==2012,Name=="Lady Musgrave Island", R
            is.na(Lower) ~ NA,
            .default="Within"), Shelf="Inshore", Depth="Deep slope")
 
-Class.df2d<-Cond.Class(df2d |> 
-                         filter(Reference==ref),
+Class.df2d<-#Cond.Class(df2d |> 
+             Cond.Class.D(df2d |>
+                         filter(Reference==ref) |>
+                         mutate(across(c(Median, Lower, Upper), ~case_when(is.na(.x) ~ 0.5, .default=.x))),
                        conf=conf_thsld)
 
 f2d.cond<-radial.plot.summary( df2d, ref)+
@@ -244,5 +249,6 @@ f2d.cond
 
 f2<-plot_grid(f2a.temp, f2b.cond, f2c.temp, f2d.cond, nrow=2, ncol=2, labels=c("A","B","C","D"))
 f2             
-ggsave(plot=f2, path = "scripts/case_studies/",filename = "Fig2.png",width = 35, height = 25,units = "cm")
-ggsave(plot=f2, path = "scripts/case_studies/",filename = "Fig2.svg",width = 35, height = 25,units = "cm",device = "svg")
+#ggsave(plot=f2, path = "scripts/case_studies/",filename = "Fig2.png",width = 35, height = 25,units = "cm")
+ggsave(plot=f2, path = "scripts/case_studies/",filename = "Fig2_DendroD.png",width = 35, height = 25,units = "cm")
+#ggsave(plot=f2, path = "scripts/case_studies/",filename = "Fig2.svg",width = 35, height = 25,units = "cm",device = "svg")

@@ -18,12 +18,15 @@ source("scripts/plotting_functions/radial.plot.summary.R")
 ## Load Data ####
 load("indices.RData")
 indices<-indices |> 
+filter(!Reference == "Combined") |> #This is the straight average of the baseline and critical scores. Removed to avoid confusion, since we're not using it
+  #since the original code probably uses the term 'Combined' throughout, set the correct Reference level to be called 'Combined'
+  mutate(Reference=ifelse(Reference=="Combined_adjusted", "Combined", Reference)) |>
   mutate(fYEAR=Year, Year=as.numeric(as.character(Year)),
          Reference=case_when(
-           (Reference=="Combined") & 
-             (Indicator %in% c("Community.composition", "Recovery.performance")) ~ "old_combined",
+          #  (Reference=="Combined") & 
+          #    (Indicator %in% c("Community.composition", "Recovery.performance")) ~ "old_combined",
            (Reference=="Baseline") &
-             (Indicator %in% c("Community.composition", "Recovery.performance")) ~ "Combined",
+             (Indicator == "Community.composition") ~ "Combined",
            .default=Reference),
          Median=ifelse(is.na(Median), 0.5, Median),
          Upper=ifelse(is.na(Upper), 0.5, Upper),
@@ -33,6 +36,7 @@ regions<-nrm_regions%>%
   mutate(Region= "NRM")
 nrm<-
   st_read("C://Users/mgonzale/OneDrive - Australian Institute of Marine Science/GIS_Datasets/NRM_MarineRegions/NRM_MarineRegions.shp")
+  #st_read("data/spatial/NRM Regions/NRM_MarineRegions.shp")
 
 reefs<-indices%>%ungroup%>%
   filter(Level=="reef")%>%
@@ -91,7 +95,8 @@ ref="Combined"
 conf_thsld<-0.8
 regional<-indices |> filter(Level=="NRM", Reference=="Combined", Year==2024) |> 
   group_by(Year, Name, Shelf)|>
-  summarise(Cond=Cond.Class(
+  summarise(#Cond=Cond.Class(
+             Cond=Cond.Class.D(
     df=data.frame(Name,Depth,Year,Indicator, Median, Upper, Lower, p_below_0.5),conf=conf_thsld )$Class
   )
 
@@ -172,7 +177,7 @@ cond.plot<-radial.plot.summary(dat= cond, ref=ref)+
         axis.ticks.y = element_blank(),
         axis.title.y= element_blank(),
         plot.title = element_textbox_simple(
-          fill = "#DD4124FF", # Background color of the textbox
+          fill = "#ED8B00FF", # Background color of the textbox
           color = "white",    # Text color
           box.color = NULL, # Border color of the textbox
           r = unit(8, "pt"),   # Radius for rounded corners 
@@ -192,7 +197,8 @@ sites<-get_reefs(r)
 rc<-indices |> 
   filter(Year==2024, Level=="reef", Name %in% sites$Name, Reference==ref, Shelf=="Inshore") |> 
   mutate((across(.cols = c(Median, Lower, Upper), .fns = ~ ifelse(is.na(.), 0.5, .), .names = "{.col}"))) |> 
-  Cond.Class(conf=conf_thsld) |> 
+  #Cond.Class(conf=conf_thsld) |>
+  Cond.Class.D(conf=conf_thsld) |> 
   mutate(Class=factor(Class, levels=c("Good","Watch","Warning I", "Warning II", "Critical")),
          label=case_when(
            isTRUE(str_detect(Name, "Keppel")) ~ "Keppels",
@@ -246,7 +252,8 @@ Fig3<-plot_grid(tmap_grob(nrm_map),NULL,tmap_grob(fitz.map), NULL,cond.plot,
           label_colour = "black", 
           rel_widths = c(1, -0.05, 1, 0, 0.8))
 
-ggsave("scripts/case_studies/Fig3.png", Fig3, width = 380, height = 140,units = "mm")
+#ggsave("scripts/case_studies/Fig3.png", Fig3, width = 380, height = 140,units = "mm")
+ggsave("scripts/case_studies/Fig3_DendroD.png", Fig3, width = 380, height = 140,units = "mm")
 
 # cond<-indices |> 
 #   filter(Year==2024, Level=="NRM", Reference==ref, 
