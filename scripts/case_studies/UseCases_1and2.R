@@ -23,7 +23,7 @@ scores<-indices |> filter(Level=="reef") |>
          Upper=ifelse(is.na(Upper), 0.5, Upper),
          Lower=ifelse(is.na(Lower), 0.5, Lower))
 
-load("scripts/case_studies/GCRMN_CaseStudy_HC_reefs.RData") ##modelled coral cover
+load("data/GCRMN_CaseStudy_HC_reefs.RData") ##modelled coral cover from monitoring dashboard
 load("data/2015_baseline/GBR.LOF.table.RData") ## Composition change
 
 

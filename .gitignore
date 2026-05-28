@@ -1,8 +1,30 @@
-old_data_files/*.*
-Indices.csv
-Composition_change.csv
-scores.Rdata
+# R / IDE session artifacts
 .Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Deployment metadata
 rsconnect/
-.Rproj.user
-.json
+
+# Generated figures/exports
+Fig/
+scripts/case_studies/Fig*.png
+scripts/case_studies/Fig*.svg
+
+# Large data artifacts (do not version in Git)
+data/
+data/old_data_files/
+data/*.RData
+data/**/*.RData
+data/**/*.RDS
+data/Composition_change.csv
+data/GCRMN_CaseStudy_indicators_DMS.RDS
+data/spatial_aggregations.geojson
+scripts/case_studies/*.RData
+
+# Optional: keep root-level data snapshots out of Git
+indices.RData
+spatial_aggregations.geojson
+old_data_files/

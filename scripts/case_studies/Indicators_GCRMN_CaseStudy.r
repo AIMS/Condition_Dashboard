@@ -3,68 +3,27 @@ library(arrow)
 library(dplyr)
 library(ggplot2)
 
-#**********
-#Get indicator scores from DMS
-# # Providing S3 URL address for dataset of interest
-# indicators<-"s3://gbr-dms-data-public/aims-reef-indicators-framework/data.parquet"
-# # Connecting to S3 bucket
-# s3_conn <- s3_bucket(indicators)
-# # Accessing dataset
-# indicators_all <- open_dataset(indicators) |>
-# collect()
+##LOAD DATA
+indices <- readRDS("data/GCRMN_CaseStudy_indicators_DMS.RDS")
+load("data/GCRMN_CaseStudy_HC_reefs.RData")
 
-# save(indicators_all, file = "indicators_all.Rdata")
-#***********
-
-#***********
-#Note that Juvenile scores are not right in the DMS and need to be fixed
-#***********
-
-#***********
+# FOR REFERENCE - Original code to filter the data for the case study
 #Indicator data for GCRMN Case Study
-load("indicators_all.Rdata")
-# indicators_all<-read.csv("indicator_scores_revised_11092025.csv") |> mutate(Level="reef")
-glimpse(indicators_all)
-
-#Look for examples where 3 out of the 4 main indicators are below 0.5
-concern_any3 <- indicators_all |>
-        filter(
-            Level == "reef",
-            Reference == "Baseline",
-            Indicator %in% c("Juvenile.density", "Macroalgae", "Recovery.performance", "Coral.cover"),
-            Upper < 0.5,
-            Year > 2010
-        ) |>
-        group_by(Name, Year) |>
-        filter(n_distinct(Indicator) == 3) |>
-        ungroup() |>
-        droplevels()
-
-
-#Example for demonstrating how coral cover recovery can be deceiving
-#Coral cover is recovering, but very slowly and Macroalgae is high
-
-#Snapper North shallow
-Snapper_nth_shallow_DMS<- indicators_all |>
-    filter(Name == "Snapper North (shallow slope)",
-    Reference=="Baseline",
-    Year %in% c(2019, 2021, 2022))|>
-    droplevels()
-
+load("indices.Rdata")
 #Data for 3 GCRN Case Study examples
-GCRMN_CaseStudy_indicators_DMS<- indicators_all |>
-    filter(Name %in% c("Snapper North (shallow slope)", 
-    "Lady Musgrave Island (deep slope)", 
-    "Agincourt Reef No.1 (deep slope)"),
+GCRMN_indices<- indices |>
+    filter(Name %in% c("Snapper North", 
+    "Lady Musgrave Island", 
+    "Agincourt Reef No.1"),
     Reference=="Baseline",
     )|>
     droplevels() |>
     arrange(Name, Year, Indicator)
 
-save(GCRMN_CaseStudy_indicators_DMS, file = "GCRMN_CaseStudy_indicators_DMS.RData")
+saveRDS(GCRMN_indices, file = "data/GCRMN_CaseStudy_indicators_DMS.RDS")
 
 #Example years specifically
-GCRM_CaseStudy_exampleYears_DMS<- GCRMN_CaseStudy_indicators_DMS |>
+GCRM_CaseStudy_exampleYears_DMS<- GCRMN_indices |>
     filter(Name=="Snapper North (shallow slope)" & Year== "2019"|
     Name=="Lady Musgrave Island (deep slope)" & Year=="2014"|
     Name=="Agincourt Reef No.1 (deep slope)" & Year == "2023") |>
