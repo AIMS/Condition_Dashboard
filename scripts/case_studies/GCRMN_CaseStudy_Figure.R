@@ -75,7 +75,7 @@ scores <- indices |>
   mutate(
     fYEAR = Year,
       Reference=case_when(
-           (Reference=="Combined") & 
+           (Reference=="Baseline") & 
              (Indicator %in% c("Community.composition")) ~ "Combined_adjusted",
            .default=Reference),
     Year = as.numeric(as.character(Year)),
@@ -248,4 +248,6 @@ ggsave(
 )
 
 message("Export complete: ", file.path(cfg$output_dir, paste0(cfg$output_basename, ".png")))
-message("Export complete: ", file.path(cfg$output_dir, paste0(cfg$output_basename, ".svg")))
+message("Export complete: ", file.path(cfg$output_dir, paste0(cfg$output_basename, ".svg")
+
+
